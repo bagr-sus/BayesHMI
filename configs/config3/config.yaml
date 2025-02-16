@@ -68,7 +68,7 @@ sampler_parameters:
   # whether to force sequential sampling, even with chains > 1 and ray present
   force_sequential: False
   # standard deviation of noise function
-  noise_std: 50
+  noise_std: 5
   # proposal to use
   proposal: "DREAMZ"
   # whether to adapt scaling
@@ -81,6 +81,11 @@ sampler_parameters:
   lcr: 8
   b_star: 0.001
   archive_limit: 0
+
+# synthetic observe params
+synthetic_data:
+  corr_length: 20
+  noise_std: 5
 
 # types of collected data
 collect_results:

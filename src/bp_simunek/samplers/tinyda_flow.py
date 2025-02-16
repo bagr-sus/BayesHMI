@@ -320,16 +320,22 @@ class TinyDAFlowWrapper():
         boreholes = ["H1"]
         # choose which borehole conductivities to use, empty list means none
         cond_boreholes = []
-        # get actual values
-        _, values = md.generate_measured_samples(boreholes, cond_boreholes)
+        # get actual values and choose synthetic/real data
+        if "synthetic_data" in self.config:
+            times, values = md.generate_synthetic_samples(boreholes, cond_boreholes)
+        else:
+            times, values = md.generate_measured_samples(boreholes, cond_boreholes)
         logging.info("Loading observed values:")
         logging.info(values)
+        logging.info("At times:")
+        logging.info(times)
+        self.observed = values
+        self.times = times
 
         # setup loglike
         noise_cov = np.multiply(self.noise_std, np.eye(len(values)))
         logging.info("Using following noise covariance matrix")
         logging.info(noise_cov)
-        self.observed = values
         self.config["observed"] = self.observed
         self.cov = noise_cov
         self.measured_len = len(values)
@@ -394,6 +400,8 @@ class TinyDAFlowWrapper():
         # add observed data to idata
         idata["sample_stats"].attrs["observed"] = self.observed
 
+        # add observed times to idata
+        idata["sample_stats"].attrs["times"] = self.times
         return idata
 
     def setup_priors(self, config):
