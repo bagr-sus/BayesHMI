@@ -6,10 +6,10 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="bp_simunek",
+    name="bayeshmi",
     version=__version__,
     license='GPL 3.0',
-    description='BP Simunek - Bayesian inversion for specific geophysical problems.',
+    description='BayesHMI - Bayesian inversion for specific geophysical problems.',
     long_description=long_description,
     long_description_content_type="text/markdown",
     author='Ondrej Simunek, Pavel Exner',
@@ -41,7 +41,7 @@ setuptools.setup(
     # according to setuptols documentation
     # the including 'endorse.flow123d_inputs' should not be neccessary,
     # however packege_data 'endorse.flow123d_inputs' doesn't work without it
-    packages=['bp_simunek', 'bp_simunek.common', 'bp_simunek.plotting', 'bp_simunek.samplers'],
+    packages=['bp_simunek', 'bp_simunek.common', 'bp_simunek.plotting', 'bp_simunek.samplers', 'bp_simunek.samplers.surrogates'],
     package_dir={
         "": "src"
     },
