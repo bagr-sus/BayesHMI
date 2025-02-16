@@ -3,6 +3,8 @@ import pathlib
 import pickle
 
 import arviz as az
+import numpy as np
+import xarray as xr
 
 from definitions import ROOT_DIR
 
@@ -38,3 +40,15 @@ def read_idata_from_file(
     except:
         print("Error reading idata file")
 
+def idata_from_observe_times(csv_input, mimic_idata, data_index=3):
+
+    posterior_dict = {
+        param: (["chain", "draw"], csv_input[:, i + data_index].reshape(1, -1)) for i, param in enumerate(mimic_idata.posterior.data_vars)
+    }
+
+    posterior_ds = xr.Dataset(posterior_dict, coords={"chain": [1], "draw": np.arange(csv_input.shape[0])})
+
+    idata = az.InferenceData(posterior=posterior_ds)
+
+
+    return idata
