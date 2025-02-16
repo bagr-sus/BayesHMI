@@ -1,7 +1,8 @@
 import os
 import pathlib
 import pickle
-from arviz import InferenceData
+
+import arviz as az
 
 from definitions import ROOT_DIR
 
@@ -9,7 +10,7 @@ def idata_path() -> None:
     return os.path.join(ROOT_DIR, "data", "idata")
 
 def save_idata_to_file(
-        idata: InferenceData,
+        idata: az.InferenceData,
         filename: str,
         folder_path: str = idata_path()) -> None:
     # if path doesn't exist, create it
@@ -27,7 +28,7 @@ def save_idata_to_file(
 
 def read_idata_from_file(
         filename: str,
-        folder_path: str = idata_path()) -> InferenceData:
+        folder_path: str = idata_path()) -> az.InferenceData:
     path = os.path.join(folder_path, filename)
     print(f"Reading idata from {path}")
     try:
