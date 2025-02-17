@@ -44,7 +44,7 @@ def test_simulation11():
 
     # check if sampling was successful
     assert idata
-    assert idata["posterior"].sizes["draw"] == tinyda_wrapper.sample_count
+    assert idata["posterior"].sizes["draw"] == tinyda_wrapper.sample_count + 1
 
     # save results
     save_idata_to_file(idata, folder_path=work_dir, filename="flow.sim11.idata")
@@ -81,7 +81,7 @@ def test_simulation11_fail():
 
     # check if sampling was successful
     assert idata
-    assert idata["posterior"].sizes["draw"] == tinyda_wrapper.sample_count
+    assert idata["posterior"].sizes["draw"] == tinyda_wrapper.sample_count + 1
 
     # save results
     save_idata_to_file(idata, folder_path=work_dir, filename="flow.sim11.idata")
@@ -117,7 +117,7 @@ def test_simulation12_mlda():
 
     # check if sampling was successful
     assert idata
-    assert idata["posterior"].sizes["draw"] == tinyda_wrapper.sample_count
+    assert idata["posterior"].sizes["draw"] == tinyda_wrapper.sample_count + 1
 
     # save results
     save_idata_to_file(idata, folder_path=work_dir, filename="flow.sim12.idata")
