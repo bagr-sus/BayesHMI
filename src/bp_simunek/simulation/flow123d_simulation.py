@@ -313,11 +313,7 @@ class Flow123dSimulation:
 
 
     def prepare_mesh(self, config_dict, cut_tunnel):
-        if "mlda" in config_dict["sampler_parameters"] and config_dict["sampler_parameters"]["mlda"] is True:
-            level = config_dict["sampler_parameters"]["level"]
-            mesh_name = config_dict["geometry"]["mesh_name"][level]
-        else:
-            mesh_name = config_dict["geometry"]["mesh_name"]
+        mesh_name = config_dict["mesh"]
 
         logging.info(mesh_name)
 
