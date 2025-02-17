@@ -82,6 +82,14 @@ sampler_parameters:
   b_star: 0.001
   archive_limit: 0
 
+models:
+  - name: nn_surrogate
+    type: nn
+    file: model_TSX_large.pth
+  - name: default
+    type: flow
+    file: tunnel_mesh_cut_fine_healed
+
 # synthetic observe params
 #synthetic_data:
 #  corr_length: 20
@@ -100,9 +108,6 @@ output_times: &output_times
   - {begin: *start_time, step: 10, end: *bored_time}
   - {begin: *bored_time, step: 10, end: 100}
   - {begin: 100, step: 20, end: *end_time}
-
-geometry:
-    mesh_name: tunnel_mesh_cut_fine_healed
 
 observe_points:
   #- V1 # HGT1-5
