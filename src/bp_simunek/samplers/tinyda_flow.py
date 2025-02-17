@@ -5,6 +5,7 @@ import logging
 from functools import partial
 from enum import Enum
 import re
+from copy import deepcopy
 
 import numpy as np
 import scipy.stats as sps
@@ -15,6 +16,8 @@ from tinyDA.sampler import ray_is_available
 
 from ..simulation.measured_data import MeasuredData
 from ..common.memoize import File
+from ..samplers.surrogates.flow_torch_wrapper import Wrapper as NNWrapper
+from ..simulation.flow_wrapper import Wrapper as FlowWrapper
 
 
 NUMBER_OF_CHAINS_DEFAULT = 1
@@ -81,8 +84,6 @@ class DataLogger():
         except Exception:
             logging.error("Unable to write to file")
             logging.error(traceback.format_exc())
-
-
 
 class TinyDAFlowWrapper():
     """
@@ -316,6 +317,7 @@ class TinyDAFlowWrapper():
         # get measured data
         md = MeasuredData(self.config)
         md.initialize()
+
         # choose which boreholes to use
         boreholes = ["H1"]
         # choose which borehole conductivities to use, empty list means none
@@ -342,22 +344,28 @@ class TinyDAFlowWrapper():
         self.loglike_object = tda.GaussianLogLike(np.array(self.observed), self.cov)
 
         # combine into posterior
-        # if using mlda, use one mesh per model
-        if not self.mlda:
-            posteriors = tda.Posterior(self.prior, self.loglike_object, self.forward_model)
-        else:
-            self.flow_wrapper.set_mlda_level(0)
-            posteriors = []
-            for level in np.arange(self.mlda_levels):
-                logging.info(level)
-                forward_model = partial(self.forward_model_mlda, level=level)
-                posterior_level = tda.Posterior(self.prior, self, forward_model)
-                posteriors.append(posterior_level)
+        posteriors = []
+
+        for level, model in enumerate(self.config["models"]):
+            logging.info("Model level: %i", level)
+            logging.info("Model name: %s", model["name"])
+            logging.info("Model type: %s", model["type"])
+            
+            if model["type"] == "flow":
+                wrapper = deepcopy(self.flow_wrapper)
+                wrapper.sim._config["mesh"] = model["file"]
+                forward_model = partial(self.flow_model, level=level, wrapper=wrapper)
+            elif model["type"] == "nn":
+                wrapper = NNWrapper(os.path.join(self.config["work_dir"], model["file"]))
+                forward_model = partial(self.nn_model, level=level, wrapper=wrapper)
+
+            posterior_level = tda.Posterior(self.prior, self.loglike_object, forward_model)
+            posteriors.append(posterior_level)
 
         # setup proposal covariance matrix (for random gaussian walk & adaptive metropolis)
         proposal_cov = self.create_proposal_matrix()
+
         # setup proposal
-        #proposal = tda.IndependenceSampler(self.prior)
         if self.proposal == tda.GaussianRandomWalk:
             logging.info("Using GRW")
             proposal = tda.GaussianRandomWalk(proposal_cov, self.scaling, self.adaptive, self.gamma, self.adaptivity_period)
@@ -402,6 +410,7 @@ class TinyDAFlowWrapper():
 
         # add observed times to idata
         idata["sample_stats"].attrs["times"] = self.times
+
         return idata
 
     def setup_priors(self, config):
@@ -435,11 +444,7 @@ class TinyDAFlowWrapper():
         self.priors = priors
         self.prior = tda.distributions.JointPrior([prior["dist"] for prior in priors])
 
-    def forward_model(self, params):
-        # transform parameters via info from priors
-        logging.info("Input params:")
-        logging.info(params)
-
+    def transform_params(self, params):
         trans_params = []
         for param, prior in zip(params, self.priors):
             match prior["type"]:
@@ -455,19 +460,81 @@ class TinyDAFlowWrapper():
                     trans_param = sps.norm.ppf((phi_b - phi_a)*phi_param + phi_a)*sigma + mu
 
             trans_params.append(trans_param)
+        return trans_params
 
-        # Pass params to flow
-        logging.info("Passing params to flow")
-        logging.info(trans_params)
-        self.flow_wrapper.set_parameters(data_par=trans_params)
+    def nn_model(self, params, level, wrapper):
+        # log model info
+        #logging.info("Model level: %i", level)
+        
+        # transform parameters via info from priors
+        #logging.info("Raw input:")
+        #logging.info(params)
+
+        trans_params = np.array(self.transform_params(params))
+        #logging.info("Transformed input:")
+        #logging.info(trans_params)
+
+        old_perms = self.new_to_old_model(*trans_params[2:])
+        #logging.info("Old perms:")
+        #logging.info(old_perms)
+
+        final_params = np.concatenate([trans_params[0:4], old_perms])
+        #logging.info("Final params:")
+        #logging.info(final_params)
 
         # Start time measurement of model
         start = time.time()
-        # Get result from flow - blocks thread
+
+        # Pass params to model
+        wrapper.set_parameters(final_params)
+
+        data = wrapper.get_observations()
+
+        # Dummy value to force sampler to reject sample
+        if data is None:
+            data = np.multiply(1e8, np.ones(self.measured_len))
+
+        # Format params for logging purposes
+        params_formatted = ",".join([str(param) for param in params.tolist()])
+
+        # End time measurement of model
+        end = time.time()
+        elapsed = end - start
+        # Write time measurement
+        # Await confirmation of logging
+        elapsed_formatted = f"{elapsed:.2f}"
+        logstring = ",".join([elapsed_formatted, params_formatted]) + "\n"
+        #logging.info(logstring)
+        self.logger_ref.write_to_file.remote(logstring, "observe_times")
+
+        #if self.config["conductivity_observe_points"]:
+        #    num = len(self.config["conductivity_observe_points"])
+        #    data = data[:-num]
+        logging.info(data)
+        logging.info(data.shape)
+        return data
+
+    def flow_model(self, params, level, wrapper):
+        # log model info
+        logging.info("Model level: %i", level)
+        
+        # transform parameters via info from priors
+        logging.info("Raw input:")
+        logging.info(params)
+
+        trans_params = np.array(self.transform_params(params))
+
+        # Start time measurement of model
+        start = time.time()
+
+        # Pass params to model
+        logging.info("Transformed input:")
+        logging.info(trans_params)
+        wrapper.set_parameters(trans_params)
 
         try:
-            _, data = self.flow_wrapper.get_observations()
-
+            # Get model output
+            _, data = wrapper.get_observations()
         except Exception:
             logging.error("Couldn't get observation from wrapper\nSample will be rejected.")
             logging.error(traceback.format_exc())
@@ -484,7 +551,7 @@ class TinyDAFlowWrapper():
         pattern = r"HM Iteration.*\n"
         param_string = ""
         try:
-            with open(self.flow_wrapper.sim.stdout_path, "r", encoding="utf8") as stdout:
+            with open(wrapper.sim.stdout_path, "r", encoding="utf8") as stdout:
                 lines = "".join(stdout.readlines())
                 matches = re.findall(pattern, lines)
                 iterations = [int(match.split(" ")[2]) for match in matches]
@@ -505,14 +572,14 @@ class TinyDAFlowWrapper():
             logging.error(traceback.format_exc())
             param_string = ",".join([str(-1), str(-1)])
             try:
-                self.flow_wrapper.sim.copy_sample_dir()
+                wrapper.sim.copy_sample_dir()
             except Exception:
                 logging.error("Failed to copy sample dir")
                 logging.error(traceback.format_exc())
             self.logger_ref.write_to_file.remote(params_formatted + "\n", "observe_fails")
 
         # Clean flow output dir
-        self.flow_wrapper.sim.clean_sample_dir(self.config)
+        wrapper.sim.clean_sample_dir(self.config)
 
         # End time measurement of model
         end = time.time()
@@ -524,13 +591,19 @@ class TinyDAFlowWrapper():
         #logging.info(logstring)
         self.logger_ref.write_to_file.remote(logstring, "observe_times")
 
+
         #if self.config["conductivity_observe_points"]:
         #    num = len(self.config["conductivity_observe_points"])
         #    data = data[:-num]
 
         return data
 
-    def forward_model_mlda(self, params, level):
-        self.flow_wrapper.set_mlda_level(level)
-        logging.info("Setting sampler to level %i", level)
-        return self.forward_model(params)
+    def new_to_old_model(self, is_x, is_y, k0, eps, delta, gamma):
+        kr = k0 / eps
+        is_z = 60e6
+        sigma_0 = -(is_x + is_y + is_z) / 3
+        gamma_old = gamma / sigma_0 * (-1)
+        km = delta
+        beta = (np.log(1 - 1 / eps) + np.log(k0 / delta)) * 1 / sigma_0
+
+        return kr, km, beta, gamma_old
