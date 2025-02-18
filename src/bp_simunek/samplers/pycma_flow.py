@@ -44,6 +44,8 @@ class PyCMAFlowWrapper:
         self.measured_len = len(values)
         self.times = times
 
+        self.flow_wrapper.sim._config["mesh"] = self.config["models"][0]["file"]
+
     def optimize(self):
         initial_means = np.array([param["dist"].mean() for param in self.priors])
         #initial_stds = np.array([param["dist"].std() for param in self.priors])
