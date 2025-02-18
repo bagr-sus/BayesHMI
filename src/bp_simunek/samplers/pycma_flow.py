@@ -52,6 +52,8 @@ class PyCMAFlowWrapper:
         es = cma.CMAEvolutionStrategy(x0, 2)
         es.optimize(self.model_with_error)
 
+        return es
+
     def model(self, params):
 
         self.flow_wrapper.set_parameters(params)

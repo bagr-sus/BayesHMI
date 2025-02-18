@@ -50,11 +50,9 @@ def sample():
     pycma_wrapper = PyCMAFlowWrapper(wrap)
 
     # run sampling process
-    idata = pycma_wrapper.optimize()
+    es = pycma_wrapper.optimize()
+    pycma_wrapper.save_results_to_file(es, os.path.join(work_dir, "results.txt"))
 
-
-    # generate plots
-    generate_all_flow_plots(idata, folder=work_dir)
 
 if __name__ == "__main__":
     sample()
