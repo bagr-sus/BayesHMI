@@ -113,6 +113,9 @@ class PyCMAFlowWrapper:
         self.priors = priors
 
     def save_results_to_file(self, es, file_path):
+        best_params = es.result.xbest
+        estimated_means = best_params[:len(self.observed)]
+        estimated_stds = np.abs(best_params[len(self.observed):])
         with open(file_path, "w") as f:
-            f.write(es.result_pretty())
-            f.write("\n")
+            f.write(f"Estimated Means: {estimated_means}\n")
+            f.write(f"Estimated STDs: {estimated_stds}\n")
