@@ -314,19 +314,16 @@ class TinyDAFlowWrapper():
         # setup priors from config of flow wrapper
         self.setup_priors(self.config)
 
-        # get measured data
-        md = MeasuredData(self.config)
-        md.initialize()
-
+        # setup observed data
         # choose which boreholes to use
         boreholes = ["H1"]
         # choose which borehole conductivities to use, empty list means none
         cond_boreholes = []
         # get actual values and choose synthetic/real data
         if "synthetic_data" in self.config:
-            times, values = md.generate_synthetic_samples(boreholes, cond_boreholes)
+            times, values = self.observed_data.generate_synthetic_samples(boreholes, cond_boreholes)
         else:
-            times, values = md.generate_measured_samples(boreholes, cond_boreholes)
+            times, values = self.observed_data.generate_measured_samples(boreholes, cond_boreholes)
         logging.info("Loading observed values:")
         logging.info(values)
         logging.info("At times:")
