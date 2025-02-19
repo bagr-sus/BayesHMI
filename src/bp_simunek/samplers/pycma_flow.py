@@ -74,6 +74,7 @@ class PyCMAFlowWrapper:
         if data is None:
             data = np.multiply(1e8, np.ones(self.measured_len))
 
+        self.flow_wrapper.sim.clean_sample_dir(self.config)
 
         return data
 
@@ -113,6 +114,24 @@ class PyCMAFlowWrapper:
             })
 
         self.priors = priors
+
+    def transform_params(self, params):
+        trans_params = []
+        for param, prior in zip(params, self.priors):
+            match prior["type"]:
+                case "lognorm":
+                    trans_param = np.exp(param)
+                case "truncnorm":
+                    a, b, mu, sigma = prior["params"]
+                    lower_bound = (a - mu) / sigma
+                    upper_bound = (b - mu) / sigma
+                    phi_a = sps.norm.cdf(lower_bound)
+                    phi_b = sps.norm.cdf(upper_bound)
+                    phi_param = sps.norm.cdf(param, loc=mu, scale=sigma)
+                    trans_param = sps.norm.ppf((phi_b - phi_a)*phi_param + phi_a)*sigma + mu
+
+            trans_params.append(trans_param)
+        return trans_params
 
     def save_results_to_file(self, es, file_path):
         best_params = es.result.xbest
