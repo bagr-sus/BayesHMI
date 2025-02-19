@@ -58,7 +58,9 @@ class PyCMAFlowWrapper:
 
     def model(self, params):
 
-        self.flow_wrapper.set_parameters(params)
+        trans_params = np.array(self.transform_params(params))
+
+        self.flow_wrapper.set_parameters(trans_params)
 
         try:
             # Get model output
