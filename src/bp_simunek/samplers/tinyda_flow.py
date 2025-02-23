@@ -593,6 +593,9 @@ class TinyDAFlowWrapper():
         #    num = len(self.config["conductivity_observe_points"])
         #    data = data[:-num]
 
+
+        logging.warning("Model output:")
+        logging.warning(data)
         return data
 
     def new_to_old_model(self, is_x, is_y, k0, eps, delta, gamma, is_z=60e6, sigma_c=55e6):
