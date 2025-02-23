@@ -595,12 +595,11 @@ class TinyDAFlowWrapper():
 
         return data
 
-    def new_to_old_model(self, is_x, is_y, k0, eps, delta, gamma):
+    def new_to_old_model(self, is_x, is_y, k0, eps, delta, gamma, is_z=60e6, sigma_c=55e6):
         kr = k0 / eps
-        is_z = 60e6
         sigma_0 = -(is_x + is_y + is_z) / 3
-        gamma_old = gamma / sigma_0 * (-1)
+        gamma_old = gamma / sigma_c
         km = delta
-        beta = (np.log(1 - 1 / eps) + np.log(k0 / delta)) * 1 / sigma_0
+        beta = np.log((1 - 1 / eps) * k0 / delta) / sigma_0
 
         return kr, km, beta, gamma_old
