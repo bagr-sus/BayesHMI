@@ -8,7 +8,7 @@
 
 # run fterm sing atleast once to create the image
 #./bin/fterm_sing
-cd $PBS_O_WORKDIR # potential cause of symlinks being overwritten
+#cd $PBS_O_WORKDIR # potential cause of symlinks being overwritten
 
 cfg_path=$CFG_PATH
 
@@ -26,6 +26,27 @@ if [ ! -f "${link}" ] ; then
 fi
 ln -s $SCRATCHDIR $link
 
+SCRATCHDIR=$SCRATCHDIR  # Your temporary working directory
+TARGETDIR=$HOME/bayes_output/$PBS_JOBID  # Persistent backup location
+
+mkdir -p $TARGETDIR
+
+# Start periodic sync in the background
+while true; do
+    rsync -av --delete $SCRATCHDIR/ $TARGETDIR/
+    sleep 600  # Wait 5 minutes before syncing again
+done &
+SYNC_PID=$!  # Store the process ID of the background sync
+
+cd $SCRATCHDIR
+
 singularity exec bp_simunek.sif bash scripts/singularity_run_script.sh "${link}" "${cfg_path}"
+
+# Kill the sync process when the job completes
+kill $SYNC_PID
+wait $SYNC_PID 2>/dev/null  # Ensure it's fully terminated
+
+# Perform a final sync to capture the last changes
+rsync -av $SCRATCHDIR/ $TARGETDIR/
 
 rm -r $link
