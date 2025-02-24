@@ -8,7 +8,6 @@
 
 # run fterm sing atleast once to create the image
 #./bin/fterm_sing
-#cd $PBS_O_WORKDIR # potential cause of symlinks being overwritten
 
 cfg_path=$CFG_PATH
 
@@ -38,9 +37,10 @@ while true; do
 done &
 SYNC_PID=$!  # Store the process ID of the background sync
 
-cat $(ls -la $SCRATCHDIR)
-cd $SCRATCHDIR
+#cat "$(ls -la $SCRATCHDIR)"
+#cd $SCRATCHDIR
 
+cd $PBS_O_WORKDIR # potential cause of symlinks being overwritten
 singularity exec bp_simunek.sif bash scripts/singularity_run_script.sh "${link}" "${cfg_path}"
 
 # Kill the sync process when the job completes
