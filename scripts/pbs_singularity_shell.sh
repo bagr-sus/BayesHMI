@@ -38,6 +38,7 @@ while true; do
 done &
 SYNC_PID=$!  # Store the process ID of the background sync
 
+cat $(ls -la $SCRATCHDIR)
 cd $SCRATCHDIR
 
 singularity exec bp_simunek.sif bash scripts/singularity_run_script.sh "${link}" "${cfg_path}"
