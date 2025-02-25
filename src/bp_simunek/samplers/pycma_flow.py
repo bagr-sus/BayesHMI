@@ -76,6 +76,8 @@ class PyCMAFlowWrapper:
 
         self.flow_wrapper.sim.clean_sample_dir(self.config)
 
+        logging.warning("Model output:")
+        logging.warning(data)
         return data
 
     def error(self, model_output, observed):
