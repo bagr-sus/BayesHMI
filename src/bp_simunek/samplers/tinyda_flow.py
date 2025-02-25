@@ -26,7 +26,7 @@ PROPOSAL_SCALING_DEFAULT = 0.2
 GAMMA_DEFAULT = 1.01
 ADAPTIVITY_DEFAULT = False
 ADAPTIVITY_PERIOD_DEFAULT = 10
-NOISE_STD_DEFAULT = 20
+NOISE_COV_DEFAULT = 20
 IS_PARALLEL_DEFAULT = False
 SAMPLE_COUNT_DEFAULT = 10
 TUNE_COUNT_DEFAULT = 1
@@ -125,7 +125,7 @@ class TinyDAFlowWrapper():
         self.gamma = GAMMA_DEFAULT
         self.adaptive = ADAPTIVITY_DEFAULT
         self.adaptivity_period = ADAPTIVITY_PERIOD_DEFAULT
-        self.noise_std = NOISE_STD_DEFAULT
+        self.noise_cov = NOISE_COV_DEFAULT
         self.sample_count = SAMPLE_COUNT_DEFAULT
         self.tune_count = TUNE_COUNT_DEFAULT
         self.mlda = MLDA_DEFAULT
@@ -278,12 +278,12 @@ class TinyDAFlowWrapper():
             self.adaptive = ADAPTIVITY_DEFAULT
 
         # check for noise std
-        noise_std_key = "noise_std"
-        if noise_std_key not in params:
-            logging.info("Noise standard deviation unspecified, defaulting to %f", NOISE_STD_DEFAULT)
-            self.noise_std = NOISE_STD_DEFAULT
+        noise_cov_key = "noise_cov"
+        if noise_cov_key not in params:
+            logging.info("Noise covariance unspecified, defaulting to %f", NOISE_COV_DEFAULT)
+            self.noise_cov = NOISE_COV_DEFAULT
         else:
-            self.noise_std = params[noise_std_key]
+            self.noise_cov = params[noise_cov_key]
 
 
     def create_proposal_matrix(self):

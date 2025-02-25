@@ -68,7 +68,7 @@ sampler_parameters:
   # whether to force sequential sampling, even with chains > 1 and ray present
   force_sequential: False
   # standard deviation of noise function
-  noise_std: 50
+  noise_cov: 50
   # proposal to use
   proposal: "DREAMZ"
   # whether to adapt scaling
@@ -86,6 +86,7 @@ models:
   - name: nn_surrogate
     type: nn
     file: model_TSX_large.pth
+    noise_cov: 
 #  - name: default
 #    type: flow
 #    file: tunnel_mesh_cut_fine_healed
