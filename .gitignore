@@ -167,3 +167,6 @@ tinyDA/
 
 # Saved data and test output
 output/
+
+# Data
+data/
