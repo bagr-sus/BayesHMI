@@ -332,11 +332,9 @@ class TinyDAFlowWrapper():
         self.times = times
 
         # setup loglike
-        noise_cov = np.multiply(self.noise_cov, np.eye(len(values)))
-        logging.info("Using following noise covariance matrix")
-        logging.info(noise_cov)
+        #logging.info("Using following noise covariance matrix")
+        #logging.info(noise_cov)
         self.config["observed"] = self.observed
-        self.cov = noise_cov
         self.measured_len = len(values)
         #self.loglike_object = tda.GaussianLogLike(np.array(self.observed), self.cov)
 
@@ -348,11 +346,14 @@ class TinyDAFlowWrapper():
             logging.info("Model name: %s", model["name"])
             logging.info("Model type: %s", model["type"])
 
-            loglike = tda.GaussianLogLike(np.array(self.observed), self.cov)
+            loglike = tda.GaussianLogLike(np.array(self.observed), np.multiply(self.noise_cov, np.eye(len(values))))
 
             # if alternate noise_cov is specified
             if "noise_cov" in model:
-                loglike = tda.GaussianLogLike(np.array(self.observed), model["noise_cov"])
+                loglike = tda.GaussianLogLike(np.array(self.observed), np.multiply(model["noise_cov"], np.eye(len(values))))
+
+            logging.info("Using following noise covariance matrix")
+            logging.info(loglike.cov)
 
             if model["type"] == "flow":
                 wrapper = deepcopy(self.flow_wrapper)
