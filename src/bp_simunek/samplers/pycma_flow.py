@@ -51,7 +51,7 @@ class PyCMAFlowWrapper:
         #initial_stds = np.array([param["dist"].std() for param in self.priors])
         #x0 = np.concatenate([initial_means, initial_stds])
         
-        es = cma.CMAEvolutionStrategy(initial_means, 2, {"maxfevals": 1000})
+        es = cma.CMAEvolutionStrategy(initial_means, 2, {"maxfevals": 1600})
         es.optimize(self.model_with_error)
 
         return es
