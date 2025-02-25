@@ -332,13 +332,13 @@ class TinyDAFlowWrapper():
         self.times = times
 
         # setup loglike
-        noise_cov = np.multiply(self.noise_std, np.eye(len(values)))
+        noise_cov = np.multiply(self.noise_cov, np.eye(len(values)))
         logging.info("Using following noise covariance matrix")
         logging.info(noise_cov)
         self.config["observed"] = self.observed
         self.cov = noise_cov
         self.measured_len = len(values)
-        self.loglike_object = tda.GaussianLogLike(np.array(self.observed), self.cov)
+        #self.loglike_object = tda.GaussianLogLike(np.array(self.observed), self.cov)
 
         # combine into posterior
         posteriors = []
@@ -347,7 +347,13 @@ class TinyDAFlowWrapper():
             logging.info("Model level: %i", level)
             logging.info("Model name: %s", model["name"])
             logging.info("Model type: %s", model["type"])
-            
+
+            loglike = tda.GaussianLogLike(np.array(self.observed), self.cov)
+
+            # if alternate noise_cov is specified
+            if "noise_cov" in model:
+                loglike = tda.GaussianLogLike(np.array(self.observed), model["noise_cov"])
+
             if model["type"] == "flow":
                 wrapper = deepcopy(self.flow_wrapper)
                 wrapper.sim._config["mesh"] = model["file"]
@@ -356,7 +362,7 @@ class TinyDAFlowWrapper():
                 wrapper = NNWrapper(os.path.join(self.config["work_dir"], model["file"]))
                 forward_model = partial(self.nn_model, level=level, wrapper=wrapper)
 
-            posterior_level = tda.Posterior(self.prior, self.loglike_object, forward_model)
+            posterior_level = tda.Posterior(self.prior, loglike, forward_model)
             posteriors.append(posterior_level)
 
         # setup proposal covariance matrix (for random gaussian walk & adaptive metropolis)
