@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #PBS -S /bin/bash
-#PBS -N singularity_sample_script_1000
+#PBS -N flow_bayes
 #PBS -q charon
 ##PBS -l select=1:ncpus=10:mem=10gb:scratch_local=5gb
 #PBS -l walltime=90:00:00
