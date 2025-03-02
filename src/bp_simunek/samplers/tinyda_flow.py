@@ -499,6 +499,18 @@ class TinyDAFlowWrapper():
         if data is None:
             data = np.multiply(1e8, np.ones(self.measured_len))
 
+        if np.any(np.isnan(data)):
+            logging.warning("NaN values in model output, sample will be rejected.")
+            data = np.multiply(1e8, np.ones(self.measured))
+
+        if np.any(np.isinf(data)):
+            logging.warning("Inf values in model output, sample will be rejected.")
+            data = np.multiply(1e8, np.ones(self.measured))
+
+        if np.issubdtype(data.dtype, np.str_):
+            logging.warning("String values in model output, sample will be rejected.")
+            data = np.multiply(1e8, np.ones(self.measured))
+
         # Format params for logging purposes
         params_formatted = ",".join([str(param) for param in params.tolist()])
 
