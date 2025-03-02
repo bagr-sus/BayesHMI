@@ -83,15 +83,17 @@ sampler_parameters:
   archive_limit: 0
 
 models:
-#  - name: nn_surrogate
-#    type: nn
-#    file: model_TSX_large.pth
+  - name: nn_surrogate
+    type: nn
+    file: model_TSX_large.pth
+    noise_cov: 400
 #  - name: default
 #    type: flow
-#    file: tunnel_mesh_cut_fine_healed
+#    file: tunnel_mesh_cut_coarse_healed
   - name: default
     type: flow
-    file: tunnel_mesh_cut_coarse_healed
+    file: tunnel_mesh_cut_fine_healed
+    noise_cov: 50
 
 # synthetic observe params
 #synthetic_data:
