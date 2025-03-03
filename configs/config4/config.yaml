@@ -86,7 +86,7 @@ models:
   - name: nn_surrogate
     type: nn
     file: model_TSX_large.pth
-    noise_cov: 400
+    noise_cov: 600
 #  - name: default
 #    type: flow
 #    file: tunnel_mesh_cut_coarse_healed
