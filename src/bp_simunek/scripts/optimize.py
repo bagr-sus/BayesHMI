@@ -8,8 +8,7 @@ import ray
 
 from ..simulation.flow_wrapper import Wrapper
 from ..samplers.pycma_flow import PyCMAFlowWrapper
-from ..samplers.idata_tools import save_idata_to_file
-from ..plotting.flow_plots import generate_all_flow_plots
+from ..plotting.plotting_tools import save_plot
 
 from definitions import ROOT_DIR
 
@@ -52,7 +51,10 @@ def sample():
     # run sampling process
     es = pycma_wrapper.optimize()
     pycma_wrapper.save_results_to_file(es, os.path.join(work_dir, "results.txt"))
-
+    es.plot()
+    save_plot(os.path.join(work_dir, "es_plot.pdf"))
+    es.save(name="results.txt")
+    
 
 if __name__ == "__main__":
     sample()
