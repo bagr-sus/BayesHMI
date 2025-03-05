@@ -139,6 +139,8 @@ class PyCMAFlowWrapper:
         best_params = es.result.xbest
         estimated_means = best_params[:len(self.observed)]
         estimated_stds = np.abs(best_params[len(self.observed):])
+        covariance_matrix = es.result.C
         with open(file_path, "w") as f:
             f.write(f"Estimated Means: {estimated_means}\n")
             f.write(f"Estimated STDs: {estimated_stds}\n")
+            f.write(f"Covariance Matrix: {covariance_matrix}\n")
