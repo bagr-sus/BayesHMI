@@ -50,10 +50,10 @@ def sample():
 
     # run sampling process
     es = pycma_wrapper.optimize()
+    os.chdir(script_dir)
     pycma_wrapper.save_results_to_file(es, os.path.join(work_dir, "results.txt"))
     es.plot()
     save_plot(os.path.join(work_dir, "es_plot.pdf"))
-    es.save(name="results.txt")
     
 
 if __name__ == "__main__":
