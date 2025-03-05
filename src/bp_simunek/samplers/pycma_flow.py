@@ -1,6 +1,6 @@
 import logging
 import traceback
-from functools import partial
+import os
 
 import numpy as np
 import cma
@@ -46,12 +46,18 @@ class PyCMAFlowWrapper:
 
         self.flow_wrapper.sim._config["mesh"] = self.config["models"][0]["file"]
 
-    def optimize(self):
+    def optimize(self, maxevals=1600) -> cma.CMAEvolutionStrategy:
+        #os.chdir(self.config["work_dir"])
+
         initial_means = np.array([param["dist"].mean() for param in self.priors])
-        #initial_stds = np.array([param["dist"].std() for param in self.priors])
-        #x0 = np.concatenate([initial_means, initial_stds])
-        
-        es = cma.CMAEvolutionStrategy(initial_means, 2, {"maxfevals": 1600})
+        initial_stds = np.array([np.sqrt(param["dist"].std()) for param in self.priors])
+
+        es = cma.CMAEvolutionStrategy(initial_means, 1,
+                                    {
+                                          "maxfevals": maxevals,
+                                          "CMA_stds": initial_stds,
+                                          'verb_log': 1
+                                    })
         es.optimize(self.model_with_error)
 
         return es
