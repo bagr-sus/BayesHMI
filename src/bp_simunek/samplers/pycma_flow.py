@@ -50,7 +50,7 @@ class PyCMAFlowWrapper:
         #os.chdir(self.config["work_dir"])
 
         initial_means = np.array([param["dist"].mean() for param in self.priors])
-        initial_stds = np.array([np.sqrt(param["dist"].std()) for param in self.priors])
+        initial_stds = np.array([2 * np.sqrt(param["dist"].std()) for param in self.priors])
 
         es = cma.CMAEvolutionStrategy(initial_means, 1,
                                     {
@@ -146,8 +146,8 @@ class PyCMAFlowWrapper:
         best_params = es.result.xbest
         estimated_means = best_params[:len(self.observed)]
         estimated_stds = np.abs(best_params[len(self.observed):])
-        covariance_matrix = es.result.C
+        full_cov_matrix = (es.sigma**2) * es.C
         with open(file_path, "w") as f:
             f.write(f"Estimated Means: {estimated_means}\n")
             f.write(f"Estimated STDs: {estimated_stds}\n")
-            f.write(f"Covariance Matrix: {covariance_matrix}\n")
+            f.write(f"Covariance Matrix: {full_cov_matrix}\n")
