@@ -96,9 +96,9 @@ models:
     noise_cov: 50
 
 # synthetic observe params
-synthetic_data:
-  corr_length: 20
-  noise_std: 5
+#synthetic_data:
+#  corr_length: 20
+#  noise_std: 5
 
 # types of collected data
 collect_results:
