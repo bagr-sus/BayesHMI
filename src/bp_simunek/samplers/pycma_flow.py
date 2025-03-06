@@ -56,7 +56,8 @@ class PyCMAFlowWrapper:
                                     {
                                           "maxfevals": maxevals,
                                           "CMA_stds": initial_stds,
-                                          'verb_log': 1
+                                          'verb_log': 1,
+                                          'popsize': 32
                                     })
         es.optimize(self.model_with_error)
 
