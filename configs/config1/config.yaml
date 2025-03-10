@@ -47,7 +47,7 @@ parameters:
     bounds: [ 15, 1.5]
   - name: perm_k0
     type: lognorm
-    bounds: [-46, 4]
+    bounds: [-46, 6]
   - name: perm_eps
     type: truncnorm
     bounds : [1.1, 1000, 28, 25]
