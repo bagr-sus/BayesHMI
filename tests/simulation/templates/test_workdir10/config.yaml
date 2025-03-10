@@ -4,9 +4,9 @@ make_plots: True
 clean_sample_dir: False
 
 parameters:
-#  - name: storativity
-#    type: lognorm
-#    bounds: [-14.5662279378421, 2.0]
+  - name: storativity
+    type: lognorm
+    bounds: [-14.5662279378421, 2.0]
   - name: young_modulus
     type: lognorm
     bounds: [24.8176103991685, 0.5]
@@ -52,9 +52,9 @@ output_times: &output_times
   - {begin: *bored_time, step: 10, end: 100}
   - {begin: 100, step: 20, end: *end_time}
 
-geometry:
-  # base of the mesh file name
-  mesh_name: tunnel_mesh_cut_healed
+mesh: tunnel_mesh_cut_healed
+
+
 
 observe_points:
   #- V1 # HGT1-5
