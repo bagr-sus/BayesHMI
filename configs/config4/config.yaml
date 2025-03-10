@@ -76,7 +76,7 @@ sampler_parameters:
   # how often to adapt scaling
   proposal_adaptivity_period: 20
   proposal_gamma: 0.05
-  m0: 5
+  m0: 500
   delta: 3
   lcr: 8
   b_star: 0.001
