@@ -117,6 +117,9 @@ class TinyDAFlowWrapper():
                 logging.error(traceback.format_exc())
                 self.set_default_sampler_params()
 
+        # setup priors from config of flow wrapper
+        self.setup_priors(self.config)
+
     def set_default_sampler_params(self):
         self.is_parallel = IS_PARALLEL_DEFAULT
         self.number_of_chains = NUMBER_OF_CHAINS_DEFAULT
@@ -311,9 +314,6 @@ class TinyDAFlowWrapper():
         logging.info("Using following logger files:")
         logging.info(logging_files)
 
-        # setup priors from config of flow wrapper
-        self.setup_priors(self.config)
-
         # setup observed data
         # choose which boreholes to use
         boreholes = ["H1"]
@@ -340,6 +340,7 @@ class TinyDAFlowWrapper():
 
         # combine into posterior
         posteriors = []
+        subchain_lengths = []
 
         for level, model in enumerate(self.config["models"]):
             logging.info("Model level: %i", level)
@@ -351,6 +352,12 @@ class TinyDAFlowWrapper():
             # if alternate noise_cov is specified
             if "noise_cov" in model:
                 noise_cov = np.multiply(model["noise_cov"], np.eye(len(values)))
+
+            subchain_length = 1
+            if "subchain_length" in model:
+                subchain_length = model["subchain_length"]
+
+            subchain_lengths.append(subchain_length)
 
             loglike = tda.GaussianLogLike(np.array(self.observed), np.multiply(noise_cov, np.eye(len(values))))
             logging.info("Using following noise covariance matrix")
@@ -366,6 +373,12 @@ class TinyDAFlowWrapper():
 
             posterior_level = tda.Posterior(self.prior, loglike, forward_model)
             posteriors.append(posterior_level)
+
+        # remove last subchain length, as it is not needed
+        subchain_lengths = subchain_lengths[:-1]
+
+        if len(subchain_lengths) == 1:
+            subchain_lengths = subchain_lengths[0]
 
         # setup proposal covariance matrix (for random gaussian walk & adaptive metropolis)
         proposal_cov = self.create_proposal_matrix()
@@ -387,12 +400,20 @@ class TinyDAFlowWrapper():
         # not doing this causes all of the chains to start from the same spot
         # -> messes up the directory naming, simultaneous access to the same files
         # also adds pointless correlation and reduces coverage
-        prior_values = self.prior.rvs(self.number_of_chains)
-        if self.number_of_chains > 1:
-            prior_values = list(prior_values)
+        #prior_values = self.prior.rvs(self.number_of_chains)
+        #if self.number_of_chains > 1:
+        #    prior_values = list(prior_values)
 
         # sampling process
-        samples = tda.sample(posteriors, proposal, self.sample_count, self.number_of_chains, prior_values, 1, force_sequential=self.force_sequential, logger_ref=self.logger_ref)
+        samples = tda.sample(
+            posteriors=posteriors,
+            proposal=proposal,
+            iterations=self.sample_count,
+            n_chains=self.number_of_chains,
+            #initial_parameters=prior_values,  
+            force_sequential=self.force_sequential, 
+            logger_ref=self.logger_ref, 
+            subchain_length=subchain_lengths)
 
         # check and save samples
         idata = tda.to_inference_data(chain=samples, parameter_names=[prior["name"] for prior in self.priors], burnin=self.tune_count)
