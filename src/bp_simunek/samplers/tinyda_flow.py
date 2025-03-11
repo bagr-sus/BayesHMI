@@ -543,7 +543,7 @@ class TinyDAFlowWrapper():
         elapsed_formatted = f"{elapsed:.2f}"
         logstring = ",".join([elapsed_formatted, params_formatted]) + "\n"
         #logging.info(logstring)
-        self.logger_ref.write_to_file.remote(logstring, "observe_times")
+        #self.logger_ref.write_to_file.remote(logstring, "observe_times")
 
         #if self.config["conductivity_observe_points"]:
         #    num = len(self.config["conductivity_observe_points"])
