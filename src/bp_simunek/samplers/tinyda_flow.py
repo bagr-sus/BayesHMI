@@ -548,8 +548,8 @@ class TinyDAFlowWrapper():
         #if self.config["conductivity_observe_points"]:
         #    num = len(self.config["conductivity_observe_points"])
         #    data = data[:-num]
-        logging.info(data)
-        logging.info(data.shape)
+        #logging.info(data)
+        #logging.info(data.shape)
         return data
 
     def flow_model(self, params, level, wrapper):
