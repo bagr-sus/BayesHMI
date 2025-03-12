@@ -57,7 +57,7 @@ class FlowSurrogate(nn.Module):
 
 
 class Wrapper:
-    def __init__(self, file_path, device='cpu'):
+    def __init__(self, file_path, device='cpu', boreholes=["H1"]):
 
         # get path of this file:
         # path = os.path.dirname(__file__)
@@ -76,6 +76,7 @@ class Wrapper:
         self.means = np.array([-16, 26, 17, 16, -48, -41, -14, -16], dtype=np.float32)[None, :]
         self.std = np.array([2, 2, 2, 2, 2, 2, 2, 2], dtype=np.float32)[None, :]
         self.parameters = self.means.copy()
+        self.boreholes = boreholes
 
     def set_parameters(self, parameters: npt.NDArray) -> None:
         parameters = parameters.reshape(-1, 8)
@@ -94,4 +95,17 @@ class Wrapper:
         data = [y[:, i::4] for i in range(4)]
         #logging.info(f"Surrogate data: {data}")
         #logging.info(data)
-        return data[2].flatten()
+        select_data = np.empty((0, 1))
+        for bh in self.boreholes:
+            match bh:
+                case "V1":
+                    i = 0
+                case "V2":
+                    i = 1
+                case "H1":
+                    i = 2
+                case "H2":
+                    i = 3
+            select_data = np.append(select_data, data[i].flatten())
+
+        return select_data.flatten()
