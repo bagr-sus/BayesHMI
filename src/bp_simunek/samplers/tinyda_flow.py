@@ -316,9 +316,9 @@ class TinyDAFlowWrapper():
 
         # setup observed data
         # choose which boreholes to use
-        boreholes = ["H1"]
+        boreholes = self.config["observe_points"]
         # choose which borehole conductivities to use, empty list means none
-        cond_boreholes = []
+        cond_boreholes = self.config["conductivity_observe_points"]
         # get actual values and choose synthetic/real data
         if "synthetic_data" in self.config:
             times, values = self.observed_data.generate_synthetic_samples(boreholes, cond_boreholes)
@@ -368,8 +368,8 @@ class TinyDAFlowWrapper():
                 wrapper.sim._config["mesh"] = model["file"]
                 forward_model = partial(self.flow_model, level=level, wrapper=wrapper)
             elif model["type"] == "nn":
-                wrapper = NNWrapper(os.path.join(self.config["work_dir"], model["file"]))
-                forward_model = partial(self.nn_model, level=level, wrapper=wrapper)
+                wrapper = NNWrapper(os.path.join(self.config["work_dir"], model["file"]), boreholes=self.config["observe_points"])
+                forward_model = partial(self.nn_model, wrapper=wrapper)
 
             posterior_level = tda.Posterior(self.prior, loglike, forward_model)
             posteriors.append(posterior_level)
@@ -488,7 +488,7 @@ class TinyDAFlowWrapper():
             trans_params.append(trans_param)
         return trans_params
 
-    def nn_model(self, params, level, wrapper):
+    def nn_model(self, params, wrapper):
         # log model info
         #logging.info("Model level: %i", level)
         
