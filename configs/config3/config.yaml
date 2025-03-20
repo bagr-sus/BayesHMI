@@ -116,9 +116,9 @@ output_times: &output_times
   - {begin: 100, step: 20, end: *end_time}
 
 observe_points:
-  - V1 # HGT1-5
+  #- V1 # HGT1-5
   #- V2 # HGT1-4
-  #- H1 # HGT2-4
+  - H1 # HGT2-4
   #- H2 # HGT2-3
 conductivity_observe_points: []
   #- V1_cond
