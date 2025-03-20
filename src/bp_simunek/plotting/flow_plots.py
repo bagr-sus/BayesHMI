@@ -1,24 +1,35 @@
 import os
 import logging
 import time
+
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.patches as mpt
+import matplotlib.colors as mcolors
 import arviz as az
 import numpy as np
 import scipy.stats as sps
-from ..samplers.idata_tools import read_idata_from_file
+
+from ..samplers.tinyda_flow import TinyDAFlowWrapper
+from ..samplers.surrogates.flow_torch_wrapper import Wrapper as NNwrapper
+from ..simulation.flow_wrapper import Wrapper
+from ..samplers.idata_tools import read_idata_from_file, idata_from_observe_times
 from ..plotting.plotting_tools import save_plot, save_plots_pdf_pages
 from definitions import ROOT_DIR
 
-def plot_pressures(idata: az.InferenceData, exp, times):
+def plot_pressures(idata: az.InferenceData, exp):
     plt.figure()
     plt.xlabel("Čas [den]")
     plt.ylabel("Tlaková výška [m]")
-    plt.xlim(-5, 370)
-    plt.ylim(0, 300)
     plt.title("Změna tlakové výšky vrtu H1 v čase")
     obs_keys = [f"obs_{idx}" for idx in np.arange(0, 26)]
+
+    if "times" not in idata["sample_stats"].attrs:
+        logging.warning("Missing time intervals in idata, cannot plot pressures")
+        return
+    times = idata["sample_stats"].attrs["times"]
+    plt.xlim(times[0] - 5, times[-1] + 5)
+
     exp_plot, = plt.plot(times, exp, color="black", linewidth=1, linestyle="dotted")
     areas = 100
     quantiles_95 = []
@@ -78,6 +89,8 @@ def plot_pressures(idata: az.InferenceData, exp, times):
     #quantiles_25_plot, = plt.plot(times, quantiles_25)
     quantiles_5_plot, = plt.plot(times, quantiles_5, color="darkblue", linewidth=1)
     median_plot, = plt.plot(times, medians, color="indigo", linewidth=1, linestyle="dashed")
+
+    plt.ylim(np.min(quantiles_5), np.max(quantiles_95))
 
     #filled_patch = mpt.Patch(color="orange", label="Pravděpodobnostní hustota inverze")
 
@@ -184,8 +197,8 @@ def load_csv(folder_path, file):
         n_elements = len(lines[0].split(","))
         cols_arr = np.empty((0, n_elements))
         for line in lines:
-            cols = [int(i) for i in line.split(",")]
-            cols_arr = np.vstack((cols_arr, cols))
+            #cols = [float(i) for i in line.split(",")]
+            cols_arr = np.vstack((cols_arr, np.array(line.split(","), dtype=float)))
 
     return cols_arr
 
@@ -260,6 +273,79 @@ def plot_likelihood(idata: az.InferenceData, cutoff=-100):
 
     return figs
 
+def plot_pair_against_nn(idata: az.InferenceData, nn_model, config_path=None, nn_path=None):
+    # setup observed data
+    observed_data = idata["posterior_predictive"]
+
+    flattened_observed = [observed_data[var].values.reshape(-1, 1)
+                  for var in observed_data.data_vars]
+    
+    merged_observed = np.concatenate(flattened_observed, axis=1)
+
+    # setup posterior data
+    posterior_data = idata["posterior"]
+
+    flattened_posterior = [posterior_data[var].values.reshape(-1, 1)
+                  for var in posterior_data.data_vars]
+    
+    merged_posterior = np.concatenate(flattened_posterior, axis=1)
+
+    # setup flow and tinyda wrappers for parameter conversion
+    if config_path is None:
+        config_path = os.path.join(ROOT_DIR, "tests", "simulation", "templates", "test_workdir11")
+
+    observe_path = os.path.join(ROOT_DIR, "tests", "measured_data")
+    wrapper_new = Wrapper(config_path)
+    wrapper_new.set_observe_path(observe_path)
+    wrapper = TinyDAFlowWrapper(wrapper_new)
+
+    # setup NN wrapper
+
+    if nn_path is None:
+        nn_path = os.path.join(ROOT_DIR, "src", "bp_simunek", "samplers", "surrogates", "model_TSX_large.pth")
+
+    assert os.path.exists(nn_path), f"NN model not found at {nn_path}"
+
+    nn_wrapper = NNwrapper(nn_path)
+
+    error_data = np.empty((0, 1))
+
+    for posterior, observed in zip(merged_posterior, merged_observed):
+
+        # transform params for the NN
+        new_params = wrapper.transform_params(posterior)
+        old_perms = wrapper.new_to_old_model(*new_params[2:])
+        old_params = np.concatenate([new_params[0:4], old_perms])
+
+        # get observe from NN
+        print(old_params)
+        nn_wrapper.set_parameters(old_params)
+        nn_observed = nn_wrapper.get_observations()
+
+        # compute norm between NN observe and real observe
+        norm = np.linalg.norm(nn_observed - observed)
+        error_data = np.vstack((error_data, norm))
+
+    fig_pair, ax_pair = plt.subplots(len(new_params) - 1, len(new_params) - 1, figsize=(16, 9))
+    
+    cmap = plt.cm.get_cmap("plasma")
+
+    az.plot_pair(
+        idata,
+        kind="scatter",
+        scatter_kwargs={"c": error_data, "cmap": cmap},
+        colorbar=True,
+        ax=ax_pair)
+
+    fig_hist, ax_hist = plt.subplots(figsize=(16, 9))
+    norm = mcolors.Normalize(vmin=error_data.min(), vmax=error_data.max())
+    values, bins, patches = ax_hist.hist(error_data, bins=100)
+
+    for patch, binn in zip(patches, bins[:-1]):
+        patch.set_facecolor(cmap(norm(binn)))  # Color each bin based on its value
+
+    return fig_pair, fig_hist
+
 
 def generate_all_flow_plots(idata: az.InferenceData, folder):
     az.plot_pair(idata, kind="kde")
@@ -312,10 +398,7 @@ def generate_all_flow_plots(idata: az.InferenceData, folder):
         summary += f"\n\n{accepted} accepted\n{rejected} rejected\n{accepted / (accepted + rejected)} acceptance rate"
         file.writelines(summary)
 
-    times = [0, 10, 17, 27, 37, 47, 57, 67, 77, 87, 97, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320, 340, 360, 365]
-
-
-    plot_pressures(idata, exp, times)
+    plot_pressures(idata, exp)
     save_plot("pressure_plot.pdf", folder_path=folder)
 
 
@@ -336,10 +419,22 @@ def compute_accepted(idata):
 
 if __name__ == "__main__":
     #idata_name = "20x300.idata"
-    folder_path = os.path.join(ROOT_DIR, "data", "dataset9", "20x1000_DREAM")
     #folder_path = os.path.join(ROOT_DIR, "output", "test11")
-    idata_name = "20x1000.idata"
+    folder_path = os.path.join(ROOT_DIR, "data", "dataset16", "bruh")
+    idata_name = "20x300.idata"
     idata = read_idata_from_file(idata_name, folder_path)
-    #generate_all_flow_plots(idata, folder_path)
-    likelihood_plots = plot_likelihood(idata, -4000)
-    save_plots_pdf_pages("likelihood_plot.pdf", folder_path=folder_path, figs=likelihood_plots)
+    print(idata["sample_stats"])
+    print(idata["sample_stats"].attrs)
+    generate_all_flow_plots(idata, folder_path)
+    #figs = plot_pair_against_nn(idata, None)
+    #save_plots_pdf_pages("pair_plot_nn.pdf", figs, folder_path=folder_path)
+    #likelihood_plots = plot_likelihood(idata, -4000)
+    #save_plots_pdf_pages("likelihood_plot.pdf", folder_path=folder_path, figs=likelihood_plots)
+    #csv_folder = os.path.join(ROOT_DIR, "data", "dataset10")
+    #csv_name = "long_model_evaluations.txt"
+    #csv_data = load_csv(csv_folder, csv_name)
+    #csv_idata = idata_from_observe_times(csv_data, idata)
+    #az.plot_pair(csv_idata)
+    #save_plot("long_evaluations_pair_plot.pdf", folder_path=folder_path)
+    #az.plot_posterior(csv_idata)
+    #save_plot("long_evaluations_posterior_plot.pdf", folder_path=folder_path)
