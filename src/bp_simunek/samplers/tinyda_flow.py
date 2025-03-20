@@ -368,7 +368,7 @@ class TinyDAFlowWrapper():
                 wrapper.sim._config["mesh"] = model["file"]
                 forward_model = partial(self.flow_model, level=level, wrapper=wrapper)
             elif model["type"] == "nn":
-                wrapper = NNWrapper(os.path.join(self.config["work_dir"], model["file"]), boreholes=self.config["observe_points"])
+                wrapper = NNWrapper(os.path.join(self.config["work_dir"], model["file"]), boreholes=boreholes)
                 forward_model = partial(self.nn_model, wrapper=wrapper)
 
             posterior_level = tda.Posterior(self.prior, loglike, forward_model)
