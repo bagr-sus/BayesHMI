@@ -58,6 +58,30 @@ parameters:
     type: lognorm
     bounds: [ 1.6, 2 ]
 
+sampler_parameters:
+  # how many samples to collect
+  sample_count: 1000
+  # how many samples to scrap
+  tune_count: 0
+  # how many chains to run
+  chain_count: 20
+  # whether to force sequential sampling, even with chains > 1 and ray present
+  force_sequential: False
+  # standard deviation of noise function
+  noise_cov: 50
+  # proposal to use
+  proposal: "DREAM"  
+  # whether to adapt scaling
+  proposal_adaptive: True
+  # how often to adapt scaling
+  proposal_adaptivity_period: 20
+  proposal_gamma: 0.05
+  m0: 500
+  delta: 3
+  lcr: 8
+  b_star: 0.001
+  archive_limit: 0
+
 models:
   - name: nn_surrogate
     type: nn
