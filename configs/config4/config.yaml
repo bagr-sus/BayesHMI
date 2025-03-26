@@ -86,20 +86,20 @@ models:
   - name: nn_surrogate
     type: nn
     file: model_TSX_large.pth
-    noise_cov: 400
-    subchain_length: 25
+    noise_cov: 200
+    subchain_length: 1000
 #  - name: default
 #    type: flow
 #    file: tunnel_mesh_cut_coarse_healed
   - name: default
     type: flow
     file: tunnel_mesh_cut_fine_healed
-    noise_cov: 50
+    noise_cov: 200
 
 # synthetic observe params
-#synthetic_data:
-#  corr_length: 20
-#  noise_std: 5
+synthetic_data:
+  corr_length: 20
+  noise_std: 5
 
 # types of collected data
 collect_results:
