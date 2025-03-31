@@ -413,6 +413,7 @@ class TinyDAFlowWrapper():
             #initial_parameters=prior_values,  
             force_sequential=self.force_sequential, 
             logger_ref=None,
+            adaptive_error_model="state-independent",
             subchain_length=subchain_lengths)
 
         # check and save samples
