@@ -359,7 +359,12 @@ class TinyDAFlowWrapper():
 
             subchain_lengths.append(subchain_length)
 
-            loglike = tda.GaussianLogLike(np.array(self.observed), np.multiply(noise_cov, np.eye(len(values))))
+
+            # if using fine model, use non-adaptive loglike
+            if level == len(self.config["models"]) - 1:
+                loglike = tda.GaussianLogLike(np.array(self.observed), np.multiply(noise_cov, np.eye(len(values))))
+            else:
+                loglike = tda.AdaptiveGaussianLogLike(np.array(self.observed), np.multiply(noise_cov, np.eye(len(values))))
             logging.info("Using following noise covariance matrix")
             logging.info(noise_cov)
 
