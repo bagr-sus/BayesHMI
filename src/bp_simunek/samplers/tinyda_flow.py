@@ -401,13 +401,29 @@ class TinyDAFlowWrapper():
             proposal = tda.DREAM(self.m0, self.delta, nCR=self.ncr, adaptive=self.adaptive, b_star=self.b_star, archive_limit=self.archive_limit)
 
 
-        # sample from prior to give all chains a different starting point
-        # not doing this causes all of the chains to start from the same spot
-        # -> messes up the directory naming, simultaneous access to the same files
-        # also adds pointless correlation and reduces coverage
-        #prior_values = self.prior.rvs(self.number_of_chains)
-        #if self.number_of_chains > 1:
-        #    prior_values = list(prior_values)
+        # starting point estimates via differential evolution
+        # bounds for DE
+        #bounds = []
+        #for prior in self.priors:
+        #    params = prior["params"]
+        #    match prior["type"]:
+        #        case "lognorm":
+        #            mean, std = params
+        #        case "truncnorm":
+        #            _, _, mean, std = params
+        #    
+        #    bounds.append((mean + 3 * std, mean - 3 * std))
+        #
+        # run DE
+        # TODO add modularity to this, if it works decently
+        #initial_parameters = tda.get_MAP(posteriors[-1],
+        #    method = "differential_evolution",
+        #    workers = 1,
+        #    popsize = 10,
+        #    maxiter = 3,
+        #    x0 = posteriors[-1].prior.rvs(),
+        #    bounds = bounds
+        #    )
 
         # sampling process
         samples = tda.sample(
@@ -415,10 +431,10 @@ class TinyDAFlowWrapper():
             proposal=proposal,
             iterations=self.sample_count,
             n_chains=self.number_of_chains,
-            #initial_parameters=prior_values,  
-            force_sequential=self.force_sequential, 
+            #initial_parameters=initial_parameters,
+            force_sequential=self.force_sequential,
             logger_ref=None,
-            adaptive_error_model="state-independent",
+            #adaptive_error_model="state-independent",
             subchain_length=subchain_lengths)
 
         # check and save samples
