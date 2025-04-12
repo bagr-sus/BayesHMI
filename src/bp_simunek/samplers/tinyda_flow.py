@@ -308,7 +308,8 @@ class TinyDAFlowWrapper():
         logging_files = {
             "observe_times": os.path.join(self.flow_wrapper.sim._config["work_dir"], "observe_times.txt"),
             "chain_delay": os.path.join(self.flow_wrapper.sim._config["work_dir"], "chain_delay.txt"),
-            "observe_fails": os.path.join(self.flow_wrapper.sim._config["work_dir"], "observe_fails.txt")
+            "observe_fails": os.path.join(self.flow_wrapper.sim._config["work_dir"], "observe_fails.txt"),
+            "proposal_logs": os.path.join(self.flow_wrapper.sim._config["work_dir"], "proposal_logs.csv")
         }
         self.logger_ref = DataLogger.remote(logging_files)
         logging.info("Using following logger files:")
@@ -330,6 +331,7 @@ class TinyDAFlowWrapper():
         logging.info(times)
         self.observed = values
         self.times = times
+
 
         # setup loglike
         #logging.info("Using following noise covariance matrix")
