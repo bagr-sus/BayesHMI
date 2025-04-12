@@ -340,6 +340,12 @@ class TinyDAFlowWrapper():
         self.measured_len = len(values)
         #self.loglike_object = tda.GaussianLogLike(np.array(self.observed), self.cov)
 
+        # setup logging for proposals
+        # format: input params, output pressures for each borehole
+        proposal_log_header = [param["name"] for param in self.config["parameters"]]
+        proposal_log_header.extend([f"{borehole}_{time_point}" for borehole in boreholes for time_point in np.arange(len(self.times))])
+        self.logger_ref.write_to_file.remote(",".join(proposal_log_header) + "\n", "proposal_logs")
+
         # combine into posterior
         posteriors = []
         subchain_lengths = []
@@ -607,7 +613,7 @@ class TinyDAFlowWrapper():
             data = np.multiply(1e8, np.ones(self.measured_len))
 
         # Format params for logging purposes
-        params_formatted = ",".join([str(param) for param in params.tolist()])
+        params_formatted = ",".join(["{:.3f}".format(param) for param in params.tolist()])
 
         # Get additional data from stdout and stderr of flow
         pattern = r"HM Iteration.*\n"
@@ -653,14 +659,21 @@ class TinyDAFlowWrapper():
         #logging.info(logstring)
         self.logger_ref.write_to_file.remote(logstring, "observe_times")
 
+        # log proposal
+        observe_formatted = ",".join(["{:.3f}".format(value) for value in data.tolist()])
+
+        if not np.any(data > 1e6):
+            proposal_formatted = ",".join([params_formatted, observe_formatted, "\n"])
+            self.logger_ref.write_to_file.remote(proposal_formatted, "proposal_logs")
 
         #if self.config["conductivity_observe_points"]:
         #    num = len(self.config["conductivity_observe_points"])
         #    data = data[:-num]
 
+        #logging.warning("Model output:")
+        #logging.warning(data)
 
-        logging.warning("Model output:")
-        logging.warning(data)
+
         return data
 
     def new_to_old_model(self, is_x, is_y, k0, eps, delta, gamma, is_z=60e6, sigma_c=55e6):
