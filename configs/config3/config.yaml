@@ -63,7 +63,7 @@ parameters:
 
 sampler_parameters:
   # how many samples to collect
-  sample_count: 500
+  sample_count: 1000
   # how many samples to scrap
   tune_count: 0
   # how many chains to run
@@ -73,7 +73,7 @@ sampler_parameters:
   # standard deviation of noise function
   noise_cov: 50
   # proposal to use
-  proposal: "DREAMZ"  
+  proposal: "DREAM"  
   # whether to adapt scaling
   proposal_adaptive: True
   # how often to adapt scaling
@@ -84,25 +84,26 @@ sampler_parameters:
   lcr: 8
   b_star: 0.001
   archive_limit: 0
+  adaptive_likelihood: True
 
 models:
   - name: nn_surrogate
     type: nn
     file: model_TSX_large.pth
-    noise_cov: 200
-    subchain_length: 100
+    noise_cov: 400
+    subchain_length: 25
 #  - name: default
 #    type: flow
 #    file: tunnel_mesh_cut_coarse_healed
   - name: default
     type: flow
     file: tunnel_mesh_cut_fine_healed
-    noise_cov: 200
+    noise_cov: 50
 
 # synthetic observe params
-synthetic_data:
-  corr_length: 20
-  noise_std: 5
+#synthetic_data:
+#  corr_length: 20
+#  noise_std: 5
 
 # types of collected data
 collect_results:
