@@ -38,6 +38,7 @@ DELTA_DEFAULT = 1
 NCR_DEFAULT = 1
 B_STAR_DEFAULT = 1e-6
 ARCHIVE_LIMIT_DEFAULT = 0
+ADAPTIVE_LIKELIHOOD_DEFAULT = False
 
 @ray.remote
 class DataLogger():
@@ -138,6 +139,7 @@ class TinyDAFlowWrapper():
         self.delta = DELTA_DEFAULT
         self.ncr = NCR_DEFAULT
         self.b_star = B_STAR_DEFAULT
+        self.adaptive_likelihood = ADAPTIVE_LIKELIHOOD_DEFAULT
 
     def load_sampler_params(self, params):
         # specify number of chains
@@ -280,13 +282,21 @@ class TinyDAFlowWrapper():
             logging.warning("Unspecified whether to adapt, defaulting to %s", str(ADAPTIVITY_DEFAULT))
             self.adaptive = ADAPTIVITY_DEFAULT
 
-        # check for noise std
+        # check for noise cov
         noise_cov_key = "noise_cov"
         if noise_cov_key not in params:
             logging.info("Noise covariance unspecified, defaulting to %f", NOISE_COV_DEFAULT)
             self.noise_cov = NOISE_COV_DEFAULT
         else:
             self.noise_cov = params[noise_cov_key]
+
+        # check for adaptive likelihood
+        adaptive_likelihood_key = "adaptive_likelihood"
+        if adaptive_likelihood_key not in params:
+            logging.info("Adaptive likelihood unspecified, defaulting to %s", str(ADAPTIVE_LIKELIHOOD_DEFAULT))
+            self.adaptive_likelihood = ADAPTIVE_LIKELIHOOD_DEFAULT
+        else:
+            self.adaptive_likelihood = params[adaptive_likelihood_key]
 
 
     def create_proposal_matrix(self):
@@ -433,16 +443,23 @@ class TinyDAFlowWrapper():
         #    bounds = bounds
         #    )
 
+        initial_parameters = [posteriors[0].prior.rvs() for i in range(self.number_of_chains)]
+        error_model = None
+        if self.adaptive_likelihood:
+            error_model = "state-independent"
+
+        logging.info(error_model)
+
         # sampling process
         samples = tda.sample(
             posteriors=posteriors,
             proposal=proposal,
             iterations=self.sample_count,
             n_chains=self.number_of_chains,
-            #initial_parameters=initial_parameters,
+            initial_parameters=initial_parameters,
             force_sequential=self.force_sequential,
             logger_ref=None,
-            #adaptive_error_model="state-independent",
+            adaptive_error_model=error_model,
             subchain_length=subchain_lengths)
 
         # check and save samples
