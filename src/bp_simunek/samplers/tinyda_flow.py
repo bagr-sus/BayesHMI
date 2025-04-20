@@ -206,6 +206,12 @@ class TinyDAFlowWrapper():
                 case "Metropolis":
                     self.proposal = tda.GaussianRandomWalk
                     logging.info("Using GRW proposal")
+                case "MALA":
+                    self.proposal = tda.MALA
+                    logging.info("Using MALA proposal")
+                case "KernelMALA":
+                    self.proposal = tda.KernelMALA
+                    logging.info("Using Kernel MALA proposal")
                 case _:
                     self.proposal = tda.GaussianRandomWalk
                     logging.warning(f"Incorrect sampler specified, defaulting to {PROPOSAL_DEFAULT}")
@@ -213,7 +219,7 @@ class TinyDAFlowWrapper():
             logging.warning(f"No sampler specified, defaulting to {PROPOSAL_DEFAULT}")
             self.sampler = PROPOSAL_DEFAULT
 
-        if self.proposal is tda.GaussianRandomWalk:
+        if self.proposal in [tda.GaussianRandomWalk, tda.MALA, tda.KernelMALA]:
               # check if proposal params are specified
             proposal_scaling_key = "proposal_scaling"
             if proposal_scaling_key in params:
@@ -417,6 +423,12 @@ class TinyDAFlowWrapper():
         elif self.proposal == tda.DREAM:
             logging.info("Using DREAM")
             proposal = tda.DREAM(self.m0, self.delta, nCR=self.ncr, adaptive=self.adaptive, b_star=self.b_star, archive_limit=self.archive_limit)
+        elif self.proposal == tda.MALA:
+            logging.info("Using MALA")
+            proposal = tda.MALA(self.scaling, self.adaptive, self.gamma, self.adaptivity_period)
+        elif self.proposal == tda.KernelMALA:
+            logging.info("Using Kernel MALA")
+            proposal = tda.KernelMALA(M=5000, t0=2000, scaling=self.scaling, adaptive=self.adaptive, gamma=self.gamma, period=self.adaptivity_period)
 
 
         # starting point estimates via differential evolution
