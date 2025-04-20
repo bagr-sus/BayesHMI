@@ -83,20 +83,21 @@ sampler_parameters:
   lcr: 8
   b_star: 0.001
   archive_limit: 0
+  adaptive_likelihood: True
 
 models:
-#  - name: nn_surrogate
-#    type: nn
-#    file: model_TSX_large.pth
-#    noise_cov: 200
-#    subchain_length: 100
+  - name: nn_surrogate
+    type: nn
+    file: model_TSX_large.pth
+    noise_cov: 200
+    subchain_length: 100
 #  - name: default
 #    type: flow
 #    file: tunnel_mesh_cut_coarse_healed
   - name: default
     type: flow
     file: tunnel_mesh_cut_fine_healed
-#    noise_cov: 200
+    noise_cov: 200
 
 # synthetic observe params
 #synthetic_data:
@@ -118,7 +119,7 @@ output_times: &output_times
   - {begin: 100, step: 20, end: *end_time}
 
 observe_points:
-  - V1 # HGT1-5
+  #- V1 # HGT1-5
   #- V2 # HGT1-4
   - H1 # HGT2-4
   #- H2 # HGT2-3
