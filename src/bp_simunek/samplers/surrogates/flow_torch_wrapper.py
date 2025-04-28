@@ -94,7 +94,7 @@ class Wrapper:
         #loss.backward()
         #for name, param in self.model.named_parameters():
         #    print(name, param.shape, param.grad.shape)
-        y = y.detach().cpu().numpy() * 275.0
+        y = y.cpu().numpy() * 275.0
         #return 1, np.concatenate([y[:, i::4] for i in range(4)], axis=1)
         data = [y[:, i::4] for i in range(4)]
         #logging.info(f"Surrogate data: {data}")
