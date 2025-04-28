@@ -87,9 +87,9 @@ class Wrapper:
         #logging.info(self.parameters)
 
     def get_observations(self) -> npt.NDArray:
-        with torch.no_grad():
-            parameters = torch.tensor(self.parameters, dtype=torch.float32, device=self.device)
-            y = self.model(parameters)
+        #with torch.no_grad():
+        parameters = torch.tensor(self.parameters, dtype=torch.float32, device=self.device)
+        y = self.model(parameters)
         y = y.cpu().numpy() * 275.0
         #return 1, np.concatenate([y[:, i::4] for i in range(4)], axis=1)
         data = [y[:, i::4] for i in range(4)]
