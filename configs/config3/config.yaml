@@ -73,14 +73,14 @@ sampler_parameters:
   # standard deviation of noise function
   noise_cov: 50
   # proposal to use
-  proposal: "MALA"  
+  proposal: "DREAM"  
   # whether to adapt scaling
   proposal_adaptive: True
   # how often to adapt scaling
   proposal_adaptivity_period: 5000
   proposal_gamma: 0.05
   proposal_scaling: 0.1
-  m0: 500
+  m0: 250
   delta: 3
   lcr: 8
   b_star: 0.001
@@ -99,7 +99,7 @@ models:
   - name: default
     type: flow
     file: tunnel_mesh_cut_fine_healed
-    noise_cov: 100
+    noise_cov: 200
 
 # synthetic observe params
 #synthetic_data:

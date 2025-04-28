@@ -72,14 +72,14 @@ sampler_parameters:
   # standard deviation of noise function
   noise_cov: 50
   # proposal to use
-  proposal: "KernelMALA"  
+  proposal: "DREAMZ"  
   # whether to adapt scaling
   proposal_adaptive: True
   # how often to adapt scaling
   proposal_adaptivity_period: 5000
   proposal_gamma: 0.05
   proposal_scaling: 0.1
-  m0: 500
+  m0: 5000
   delta: 3
   lcr: 8
   b_star: 0.001
