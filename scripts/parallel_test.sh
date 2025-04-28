@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#PBS -S /bin/bash
+#PBS -N flow_bayes_multinode
+#PBS -q charon
+
 # get ip addreses of all nodes
 NODES=`cat $PBS_NODEFILE`
 
@@ -24,3 +28,4 @@ echo "Running head node script"
 # run head script inside singularity container
 singularity exec instance://cont scripts/head_node_script.sh $head_address $port ${NODES[@]} $SSHPASS
 
+./scripts/pbs_singularity_shell.sh
