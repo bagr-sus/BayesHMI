@@ -42,7 +42,7 @@ total_cores=$(($node_count * $cores_per_node))
 
 for (( n=$cores_per_node; n<$total_cores; n+=$cores_per_node )); do
     node=$(head -n1 "$PBS_NODEFILE")
-    pbsdsh -n $n bash -c './scripts/worker_node_script.sh "$@"' _ $head_address &
+    pbsdsh -n $n ./scripts/worker_node_script.sh $head_address &
 done
 
 # --- head node config ---
