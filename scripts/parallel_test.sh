@@ -49,6 +49,9 @@ done
 
 # --- head node config ---
 # create container instance
+
+echo `realpath .`
+
 echo "Starting container on head node"
 singularity instance start bp_simunek.sif cont
 

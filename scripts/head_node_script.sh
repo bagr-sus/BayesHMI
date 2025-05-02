@@ -2,6 +2,8 @@
 
 set -x
 
+echo `realpath .`
+
 # get head address from input
 #head_address=$1
 
