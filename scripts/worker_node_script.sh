@@ -8,6 +8,7 @@ echo `hostname -i`
 cd $PBS_O_WORKDIR
 singularity instance start bp_simunek.sif cont
 singularity shell instance://cont
+echo "$SINGULARITY_CONTAINER"
 source venv/bin/activate
 export RAY_PYTHON=$(which python)
 echo $(which python)
