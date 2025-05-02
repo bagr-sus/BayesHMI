@@ -28,6 +28,8 @@ command="cd $PBS_O_WORKDIR && singularity instance start bp_simunek.sif cont && 
 
 uniq "$PBS_NODEFILE" | tail -n +2 | while read node; do
     echo "Running worker node script on $node"
+    echo "$node"
+    echo "$command"
     pbsdsh -h "$node" bash -c "$command" &
 done
 wait
