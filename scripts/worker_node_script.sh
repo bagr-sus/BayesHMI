@@ -10,7 +10,8 @@ singularity instance start bp_simunek.sif cont
 singularity shell instance://cont scripts/worker_node_script.sh 
 source venv/bin/activate
 export RAY_PYTHON=$(which python)
-echo $(ls $RAY_PYTHON)
+echo $(which python)
+
 
 #echo $(env | sort | grep RAY_PYTHON)
 "$RAY_PYTHON" -c pip list
