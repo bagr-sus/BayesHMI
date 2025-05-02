@@ -23,11 +23,10 @@ cd "$PBS_O_WORKDIR"
 # --- worker node config ---
 # pbsdsh to all other nodes and run their scripts
 # get head node to exclude it from the worker node list
-head_node="$(hostname)"
-
+# head node is the first unique record in $PBS_NODEFILE
 command="cd $PBS_O_WORKDIR && singularity instance start bp_simunek.sif cont && singularity exec instance://cont scripts/worker_node_script.sh $head_address $SCRATCHDIR && exit;"
 
-uniq "$PBS_NODEFILE" | grep -v "$head_node" | while read node; do
+uniq "$PBS_NODEFILE" | tail -n +2 | while read node; do
     echo "Running worker node script on $node"
     pbsdsh -h "$node" bash -c "$command" &
 done
