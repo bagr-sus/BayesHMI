@@ -12,7 +12,7 @@ cd $PBS_O_WORKDIR
 echo `realpath .`
 
 singularity instance start bp_simunek.sif contw
-singularity instance list
+echo $(singularity instance list)
 singularity shell instance://contw
 
 echo `realpath .`
