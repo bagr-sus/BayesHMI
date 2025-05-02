@@ -6,7 +6,7 @@ set -x
 #head_address=$1
 
 # get port from input
-port=$2
+port=$1
 
 # get worker node addresses from input
 #NODES=$3
@@ -15,8 +15,8 @@ port=$2
 #pass=$4
 
 # get a copy of $PBS_O_WORKDIR, other nodes seem to not know its value
-workdir=$(echo $PBS_O_WORKDIR)
-echo "workdir $workdir"
+#workdir=$(echo $PBS_O_WORKDIR)
+#echo "workdir $workdir"
 
 # activate venv
 source venv/bin/activate
