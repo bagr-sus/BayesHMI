@@ -27,12 +27,23 @@ cd "$PBS_O_WORKDIR"
 # get head node to exclude it from the worker node list
 # head node is the first unique record in $PBS_NODEFILE
 
-uniq "$PBS_NODEFILE" | tail -n +2 | while read node; do
-    echo "Running worker node script on $node"
-    echo "$node"
-    pbsdsh -h "$node" bash -c './scripts/worker_node_script.sh "$@"' $head_address &
+#uniq "$PBS_NODEFILE" | tail -n +2 | while read node; do
+#    echo "Running worker node script on $node"
+#    echo "$node"
+#    pbsdsh -h "$node" bash -c './scripts/worker_node_script.sh "$@"' $head_address &
+#done
+#wait
+
+nodes=$(cat "$PBS_NODEFILE")
+node_count=$(sort -u "$PBS_NODEFILE" | wc -l)
+# assuming first node has the same number of cores as the rest
+cores_per_node=$(grep -c "$(head -n1 "$PBS_NODEFILE")" "$PBS_NODEFILE")
+total_cores=$(($node_count * $cores_per_node))
+
+for (( n=$cores_per_node; n<$total_cores; n+=$cores_per_node )); do
+    node=$(head -n1 "$PBS_NODEFILE")
+    pbsdsh -n $n bash -c './scripts/worker_node_script.sh "$@"' $head_address &
 done
-wait
 
 # --- head node config ---
 # create container instance
