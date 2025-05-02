@@ -15,17 +15,29 @@ port=6379
 
 # combine ip and port
 head_address="$head_ip:$port"
-echo $head_address
+echo "$head_address"
 
 # change into workdir
-cd $PBS_O_WORKDIR
+cd "$PBS_O_WORKDIR"
 
+# --- worker node config ---
+# pbsdsh to all other nodes and run their scripts
+# get head node to exclude it from the worker node list
+head_node="$(hostname)"
+
+command="cd $PBS_O_WORKDIR && singularity instance start bp_simunek.sif cont && singularity exec instance://cont scripts/worker_node_script.sh $head_address $SCRATCHDIR && exit;"
+
+uniq "$PBS_NODEFILE" | grep -v "$head_node" | while read node; do
+    echo "Running worker node script on $node"
+    pbsdsh -h "$node" bash -c "$command" &
+done
+wait
+
+# --- head node config ---
 # create container instance
 echo "Starting container on head node"
 singularity instance start bp_simunek.sif cont
 
-echo "Running head node script"
 # run head script inside singularity container
-singularity exec instance://cont scripts/head_node_script.sh $head_address $port ${NODES[@]} $SSHPASS
-
-./scripts/pbs_singularity_shell.sh
+echo "Running head node script"
+singularity exec instance://cont scripts/head_node_script.sh $port
