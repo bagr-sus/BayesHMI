@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
 head_address=$1
-temp_dir=$2
+temp_dir=$SCRATCHDIR
 echo "tempdir: $temp_dir"
 
 cd $PBS_O_WORKDIR &&
