@@ -26,13 +26,11 @@ cd "$PBS_O_WORKDIR"
 # pbsdsh to all other nodes and run their scripts
 # get head node to exclude it from the worker node list
 # head node is the first unique record in $PBS_NODEFILE
-command="./scripts/worker_node_script.sh $head_address"
 
 uniq "$PBS_NODEFILE" | tail -n +2 | while read node; do
     echo "Running worker node script on $node"
     echo "$node"
-    echo "$command"
-    pbsdsh -h "$node" bash -c $command &
+    pbsdsh -h "$node" bash -c './scripts/worker_node_script.sh "$@"' $head_address &
 done
 wait
 
