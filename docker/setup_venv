@@ -14,7 +14,7 @@ sudo pip3 uninstall pytest
 
 cd ${SRC_ROOT}
 rm -r venv
-python3 -m venv --system-site-packages venv
+python3 -m venv --system-site-packages --no-cache-dir venv
 
 venv_pip=${SRC_ROOT}/venv/bin/pip
 
