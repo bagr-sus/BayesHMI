@@ -11,6 +11,6 @@ cd ${tda_path}
 git clone https://github.com/bagr-sus/tinyDA
 cd tinyDA
 git checkout shared-archive-proposals-additional
-python -m pip install -e . #editable
+python -m pip install --no-cache-dir -e . #editable
 #python -m pip install . #non-editable
 cd $cdir

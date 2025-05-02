@@ -14,13 +14,13 @@ sudo pip3 uninstall pytest
 
 cd ${SRC_ROOT}
 rm -r venv
-python3 -m venv venv
+python3 -m venv --system-site-packages venv
 
 venv_pip=${SRC_ROOT}/venv/bin/pip
 
-$venv_pip install -v -r $SRC_ROOT/requirements.txt
+$venv_pip install --no-cache-dir -v -r $SRC_ROOT/requirements.txt
 
 # install repository
-$venv_pip install -v -e .
+$venv_pip install --no-cache-dir -v -e .
 
 bash ./docker/install_custom_tinyda.sh venv/ tinyDA/
