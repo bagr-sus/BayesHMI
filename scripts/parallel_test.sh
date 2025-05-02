@@ -44,7 +44,7 @@ worker_script_path=`realpath scripts/worker_node_script.sh`
 
 for (( n=$cores_per_node; n<$total_cores; n+=$cores_per_node )); do
     node=$(head -n1 "$PBS_NODEFILE")
-    pbsdsh -n $n $worker_node_script $head_address
+    pbsdsh -n $n $worker_script_path $head_address
     #pbsdsh -n $n 'echo 1'
 done
 
