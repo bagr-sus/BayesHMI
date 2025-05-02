@@ -11,8 +11,9 @@ cd $PBS_O_WORKDIR
 
 echo `realpath .`
 
-singularity instance start bp_simunek.sif cont
-singularity shell instance://cont
+singularity instance start bp_simunek.sif contw
+singularity instance list
+singularity shell instance://contw
 
 echo `realpath .`
 echo "$SINGULARITY_CONTAINER"
@@ -28,6 +29,5 @@ echo $(which python)
 #"$RAY_PYTHON" -m ray.scripts.scripts start --address=$head_address --temp-dir=$temp_dir --num-cpus $PBS_NCPUS
 #echo $(env | sort | grep RAY_PYTHON)
 
-cd $RAY_PYTHON
 exit;
 exit;
