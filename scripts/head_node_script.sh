@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # get head address from input
 #head_address=$1
 

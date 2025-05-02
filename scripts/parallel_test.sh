@@ -4,6 +4,8 @@
 #PBS -N flow_bayes_multinode
 #PBS -q charon
 
+set -x
+
 # get ip addreses of all nodes
 NODES=`cat $PBS_NODEFILE`
 

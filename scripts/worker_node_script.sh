@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 head_address=$1
 temp_dir=$2
