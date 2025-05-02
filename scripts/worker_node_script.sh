@@ -5,11 +5,16 @@ temp_dir=$SCRATCHDIR
 echo "tempdir: $temp_dir"
 echo `hostname -i`
 
-echo $(realpath .)
+echo `realpath .`
 
 cd $PBS_O_WORKDIR
+
+echo `realpath .`
+
 singularity instance start bp_simunek.sif cont
 singularity shell instance://cont
+
+echo `realpath .`
 echo "$SINGULARITY_CONTAINER"
 source venv/bin/activate
 export RAY_PYTHON=$(which python)
