@@ -22,6 +22,19 @@ echo "$head_address"
 # change into workdir
 cd "$PBS_O_WORKDIR"
 
+
+# --- head node config ---
+# create container instance
+
+echo `realpath .`
+
+echo "Starting container on head node"
+singularity instance start bp_simunek.sif cont
+
+# run head script inside singularity container
+echo "Running head node script"
+singularity exec instance://cont scripts/head_node_script.sh $port
+
 # --- worker node config ---
 # pbsdsh to all other nodes and run their scripts
 # get head node to exclude it from the worker node list
@@ -46,15 +59,3 @@ for (( n=$cores_per_node; n<$total_cores; n+=$cores_per_node )); do
     pbsdsh -n $n $worker_script_path $head_address
     #pbsdsh -n $n 'echo 1'
 done
-
-# --- head node config ---
-# create container instance
-
-echo `realpath .`
-
-echo "Starting container on head node"
-singularity instance start bp_simunek.sif cont
-
-# run head script inside singularity container
-echo "Running head node script"
-singularity exec instance://cont scripts/head_node_script.sh $port
