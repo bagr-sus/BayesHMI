@@ -24,7 +24,7 @@ def sample():
     #    raise Exception("Missing symlink for Ray temp storage")
     tmp_dir_mount = sys.argv[1]
     cfg_path = sys.argv[2]
-    ray.init(_temp_dir=tmp_dir_mount)
+    #ray.init(_temp_dir=tmp_dir_mount)
 
     os.chdir(script_dir)
     observe_path = Path(cfg_path).absolute()
