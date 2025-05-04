@@ -15,8 +15,4 @@ echo $(singularity instance list)
 #singularity shell instance://contw
 singularity exec instance://contw scripts/worker_cont_script.sh $head_address
 
-cat /tmp/ray/session_latest/logs/raylet.err
-cat /tmp/ray/session_latest/logs/gcs_server.err
-
-
 exit;
