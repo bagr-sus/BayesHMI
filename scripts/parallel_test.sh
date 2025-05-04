@@ -6,6 +6,20 @@
 
 set -x
 
+id=$(echo "$PBS_JOBID" | cut -d'.' -f1)
+echo $id
+
+hash=$(echo "$id" | cksum)
+echo $hash
+
+link="${HOME}"/"${hash:0:3}"
+echo $link
+
+if [ ! -f "${link}" ] ; then
+    rm -r "${link}"
+fi
+ln -s $SCRATCHDIR $link
+
 # get ip addreses of all nodes
 NODES=`cat $PBS_NODEFILE`
 
@@ -33,7 +47,7 @@ singularity instance start bp_simunek.sif cont
 
 # run head script inside singularity container
 echo "Running head node script"
-singularity exec instance://cont scripts/head_node_script.sh $port
+singularity exec instance://cont scripts/head_node_script.sh $port $link
 
 # --- worker node config ---
 # pbsdsh to all other nodes and run their scripts
@@ -64,20 +78,6 @@ done
 sleep 30
 
 cfg_path=$CFG_PATH
-
-id=$(echo "$PBS_JOBID" | cut -d'.' -f1)
-echo $id
-
-hash=$(echo "$id" | cksum)
-echo $hash
-
-link="${HOME}"/"${hash:0:3}"
-echo $link
-
-if [ ! -f "${link}" ] ; then
-    rm -r "${link}"
-fi
-ln -s $SCRATCHDIR $link
 
 SCRATCHDIR=$SCRATCHDIR  # Your temporary working directory
 TARGETDIR=$HOME/bayes_output/$PBS_JOBID  # Persistent backup location

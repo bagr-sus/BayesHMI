@@ -10,6 +10,9 @@ echo `realpath .`
 # get port from input
 port=$1
 
+# get temp dir from input
+temp_dir=$2
+
 # get worker node addresses from input
 #NODES=$3
 
@@ -25,7 +28,7 @@ source venv/bin/activate
 
 # start ray on head node
 echo "Starting Ray on head node"
-ray start --head --port=$port --temp-dir=$SCRATCHDIR --num-cpus=$PBS_NCPUS
+ray start --head --port=$port --temp-dir=$temp_dir --num-cpus=$PBS_NCPUS
 sleep 5
 
 # # install sshpass, later wont be neccessary
