@@ -62,11 +62,11 @@ parameters:
 
 sampler_parameters:
   # how many samples to collect
-  sample_count: 50
+  sample_count: 200
   # how many samples to scrap
   tune_count: 0
   # how many chains to run
-  chain_count: 2
+  chain_count: 40
   # whether to force sequential sampling, even with chains > 1 and ray present
   force_sequential: False
   # standard deviation of noise function
@@ -89,7 +89,7 @@ models:
   - name: nn_surrogate
     type: nn
     file: model_TSX_large.pth
-    noise_cov: 200
+    noise_cov: 300
     subchain_length: 100
 #  - name: default
 #    type: flow
