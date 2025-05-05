@@ -77,7 +77,7 @@ sampler_parameters:
   # whether to adapt scaling
   proposal_adaptive: True
   # how often to adapt scaling
-  proposal_adaptivity_period: 20
+  proposal_adaptivity_period: 2000
   proposal_gamma: 0.05
   m0: 250
   delta: 3
