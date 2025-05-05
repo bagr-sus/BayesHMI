@@ -25,5 +25,4 @@ ray.init(
     _temp_dir=os.environ["SCRATCHDIR"],
     num_cpus=num_cpus,
     logging_level="debug",
-    address=f":{port}",
 )
