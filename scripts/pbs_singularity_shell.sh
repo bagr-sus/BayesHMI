@@ -11,6 +11,8 @@
 
 cfg_path=$CFG_PATH
 
+export RAY_BACKEND_LOG_LEVEL=debug
+
 id=$(echo "$PBS_JOBID" | cut -d'.' -f1)
 echo $id
 
@@ -51,3 +53,5 @@ wait $SYNC_PID 2>/dev/null  # Ensure it's fully terminated
 rsync -av $SCRATCHDIR/ $TARGETDIR/
 
 rm -r $link
+
+rm -rf $SCRATCHDIR/*

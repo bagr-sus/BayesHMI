@@ -6,6 +6,8 @@
 
 set -x
 
+export RAY_BACKEND_LOG_LEVEL=debug
+
 id=$(echo "$PBS_JOBID" | cut -d'.' -f1)
 echo $id
 
@@ -106,3 +108,4 @@ rsync -av $SCRATCHDIR/ $TARGETDIR/
 
 rm -r $link
 
+rm -rf $SCRATCHDIR/*
