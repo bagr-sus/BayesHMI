@@ -27,4 +27,4 @@ ray.init(
 )
 
 # Replace the internal function used during ray.init()
-ray._private.worker._global_node.session_name = "bruh"
+ray._private.worker._global_node._session_name = "bruh"
