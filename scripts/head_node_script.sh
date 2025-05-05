@@ -28,8 +28,8 @@ source venv/bin/activate
 
 # start ray on head node
 echo "Starting Ray on head node"
-#ray start --head --port=$port --num-cpus=$PBS_NCPUS --temp-dir=$temp_dir
-python -m bp_simunek.scripts.ray_hack $port $PBS_NCPUS
+ray start --head --port=$port --num-cpus=$PBS_NCPUS --temp-dir=$temp_dir
+#python -m bp_simunek.scripts.ray_hack $port $PBS_NCPUS
 sleep 5
 
 # # install sshpass, later wont be neccessary
