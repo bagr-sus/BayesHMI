@@ -28,7 +28,7 @@ source venv/bin/activate
 
 # start ray on head node
 echo "Starting Ray on head node"
-ray start --head --port=$port --num-cpus=$PBS_NCPUS
+ray start --head --port=$port --num-cpus=$PBS_NCPUS --temp-dir=$temp_dir
 sleep 5
 
 # # install sshpass, later wont be neccessary
