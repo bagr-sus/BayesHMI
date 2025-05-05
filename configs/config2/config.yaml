@@ -73,7 +73,7 @@ sampler_parameters:
   # standard deviation of noise function
   noise_cov: 50
   # proposal to use
-  proposal: "DREAM"  
+  proposal: "DREAMZ"  
   # whether to adapt scaling
   proposal_adaptive: True
   # how often to adapt scaling
