@@ -62,17 +62,17 @@ parameters:
 
 sampler_parameters:
   # how many samples to collect
-  sample_count: 200
+  sample_count: 50
   # how many samples to scrap
   tune_count: 0
   # how many chains to run
-  chain_count: 40
+  chain_count: 2
   # whether to force sequential sampling, even with chains > 1 and ray present
   force_sequential: False
   # standard deviation of noise function
   noise_cov: 50
   # proposal to use
-  proposal: "DREAMZ"  
+  proposal: "DREAM"  
   # whether to adapt scaling
   proposal_adaptive: True
   # how often to adapt scaling
