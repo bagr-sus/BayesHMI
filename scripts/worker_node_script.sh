@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+#set -x
 head_address=$1
 echo "tempdir: $temp_dir"
 echo `hostname -i`

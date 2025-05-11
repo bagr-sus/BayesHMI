@@ -4,7 +4,7 @@
 #PBS -N flow_bayes_multinode
 #PBS -q charon
 
-set -x
+#set -x
 
 #export RAY_BACKEND_LOG_LEVEL=debug
 
