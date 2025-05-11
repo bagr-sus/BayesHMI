@@ -20,6 +20,8 @@ import scipy.integrate
 import scipy.interpolate
 
 from bp_simunek import common
+from bp_simunek.simulation.flow_wrapper import setup_config
+
 
 
 def generate_time_axis(config_dict):
@@ -50,6 +52,25 @@ class Flow123dSimulation:
             print(config["sample_subdir"])
         else:
             self.work_dir = Path(config["work_dir"])
+
+
+        self.env_path = None
+        # workdir override to allow correct paths for multinode
+        # paths will be resolved from env_path env variable
+        if "workdir_override" in config:
+            workdir_override = config["workdir_override"]
+        else:
+            workdir_override=False
+
+        if workdir_override:
+            if "env_path" in config:
+                logging.warning("No env_path provided for workdir override, defaulting to SCRATCHDIR")
+                self.env_path = "SCRATCHDIR"
+            else:
+                logging.info("Workdir override detected, using %s env variable", config["env_path"])
+                self.env_path = config["env_path"]
+
+
         self.clean = clean
         self._config = config
         self.sample_counter = -1
@@ -60,6 +81,16 @@ class Flow123dSimulation:
         self.stderr_path = ""
 
     def set_parameters(self, data_par):
+        # if env_path is set, use it to overwrite work_dir
+        # set_parameters is called on the correct nodes, so resolution takes place here
+        if self.env_path is not None:
+            self._config["work_dir"] = os.environ[self.env_path]
+            self._config["common_files_dir"] = os.path.join(self._config["work_dir"], "common_files")
+            self.work_dir = Path(self._config["work_dir"])
+            # set self.env_path to None to only do this fix once
+            self.env_path = None
+            logging.info("Workdir override set to %s", self._config["work_dir"])
+
         param_list = self._config["parameters"]
         assert(len(data_par) == len(param_list))
 
