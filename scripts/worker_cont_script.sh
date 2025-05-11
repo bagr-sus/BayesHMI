@@ -3,9 +3,14 @@
 set -x
 head_address=$1
 
+cfg_path=$2
+
 echo `realpath .`
 echo "$SINGULARITY_CONTAINER"
 source venv/bin/activate
+
+cp -r "$cfg_path"/. $SCRATCHDIR
+
 export RAY_PYTHON=$(which python)
 echo $(which python)
 #echo $(env | sort | grep RAY_PYTHON)

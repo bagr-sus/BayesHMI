@@ -4,14 +4,15 @@ set -x
 
 echo `realpath .`
 
-# get head address from input
-head_address=$1
 
 # get port from input
-port=$2
+port=$1
 
 # get temp dir from input
-temp_dir=$3
+temp_dir=$2
+
+# get template dir from input
+cfg_path=$3
 
 # get worker node addresses from input
 #NODES=$3
@@ -26,13 +27,13 @@ temp_dir=$3
 # activate venv
 source venv/bin/activate
 
+cp -r "$cfg_path"/. $SCRATCHDIR
+
 # start ray on head node
 echo "Starting Ray on head node"
 ray start --head --port=$port --num-cpus=$PBS_NCPUS --temp-dir=$temp_dir --include-dashboard=false
 #python -m bp_simunek.scripts.ray_hack $port $PBS_NCPUS
 sleep 5
-
-export RAY_ADDRESS=$head_address
 
 # # install sshpass, later wont be neccessary
 # #echo apt-get install sshpass

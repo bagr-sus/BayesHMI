@@ -39,6 +39,7 @@ echo "$head_address"
 cd "$PBS_O_WORKDIR"
 
 
+cfg_path=$CFG_PATH
 # --- head node config ---
 # create container instance
 
@@ -49,7 +50,7 @@ singularity instance start bp_simunek.sif cont
 
 # run head script inside singularity container
 echo "Running head node script"
-singularity exec instance://cont scripts/head_node_script.sh $head_address $port $link
+singularity exec instance://cont scripts/head_node_script.sh $head_address $port $cfg_path
 
 # --- worker node config ---
 # pbsdsh to all other nodes and run their scripts
@@ -63,6 +64,7 @@ singularity exec instance://cont scripts/head_node_script.sh $head_address $port
 #done
 #wait
 
+
 nodes=$(cat "$PBS_NODEFILE")
 node_count=$(sort -u "$PBS_NODEFILE" | wc -l)
 # assuming first node has the same number of cores as the rest
@@ -72,14 +74,13 @@ total_cores=$(($node_count * $cores_per_node))
 worker_script_path=`realpath scripts/worker_node_script.sh`
 
 for (( n=$cores_per_node; n<$total_cores; n+=$cores_per_node )); do
-    pbsdsh -n $n $worker_script_path $head_address &
+    pbsdsh -n $n $worker_script_path $head_address $cfg_path &
     #pbsdsh -n $n 'echo 1'
 done
 
 # workers are blocked, so wait some time for them to start
 sleep 30
 
-cfg_path=$CFG_PATH
 
 SCRATCHDIR=$SCRATCHDIR  # Your temporary working directory
 TARGETDIR=$HOME/bayes_output/$PBS_JOBID  # Persistent backup location
