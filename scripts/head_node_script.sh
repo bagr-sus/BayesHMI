@@ -5,13 +5,13 @@ set -x
 echo `realpath .`
 
 # get head address from input
-#head_address=$1
+head_address=$1
 
 # get port from input
-port=$1
+port=$2
 
 # get temp dir from input
-temp_dir=$2
+temp_dir=$3
 
 # get worker node addresses from input
 #NODES=$3

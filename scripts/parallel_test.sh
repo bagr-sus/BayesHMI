@@ -49,7 +49,7 @@ singularity instance start bp_simunek.sif cont
 
 # run head script inside singularity container
 echo "Running head node script"
-singularity exec instance://cont scripts/head_node_script.sh $port $link
+singularity exec instance://cont scripts/head_node_script.sh $head_address $port $link
 
 # --- worker node config ---
 # pbsdsh to all other nodes and run their scripts
