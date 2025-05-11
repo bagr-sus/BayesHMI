@@ -28,7 +28,7 @@ source venv/bin/activate
 
 # start ray on head node
 echo "Starting Ray on head node"
-ray start --head --port=$port --num-cpus=$PBS_NCPUS --temp-dir=$temp_dir
+ray start --head --port=$port --num-cpus=$PBS_NCPUS --temp-dir=$temp_dir --disable-dashboard
 #python -m bp_simunek.scripts.ray_hack $port $PBS_NCPUS
 sleep 5
 
