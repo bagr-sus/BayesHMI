@@ -4,7 +4,7 @@ make_plots: False
 clean_sample_dir: True
 
 
-better prior
+#better prior
 parameters:
  - name: storativity
    type: lognorm
