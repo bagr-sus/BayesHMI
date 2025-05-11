@@ -32,6 +32,8 @@ ray start --head --port=$port --num-cpus=$PBS_NCPUS --temp-dir=$temp_dir --inclu
 #python -m bp_simunek.scripts.ray_hack $port $PBS_NCPUS
 sleep 5
 
+export RAY_ADDRESS=$head_address
+
 # # install sshpass, later wont be neccessary
 # #echo apt-get install sshpass
 
