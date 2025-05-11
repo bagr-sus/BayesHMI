@@ -6,7 +6,7 @@
 
 set -x
 
-export RAY_BACKEND_LOG_LEVEL=debug
+#export RAY_BACKEND_LOG_LEVEL=debug
 
 id=$(echo "$PBS_JOBID" | cut -d'.' -f1)
 echo $id
