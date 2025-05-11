@@ -2,6 +2,7 @@ mesh_only: False
 make_plots: False
 # if True, it removes sample dir right after the sample is collected
 clean_sample_dir: True
+workdir_override: True
 
 
 #better prior
