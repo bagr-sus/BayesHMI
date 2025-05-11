@@ -97,7 +97,7 @@ SYNC_PID=$!  # Store the process ID of the background sync
 #cd $SCRATCHDIR
 
 cd $PBS_O_WORKDIR # potential cause of symlinks being overwritten
-singularity exec bp_simunek.sif bash scripts/singularity_run_script.sh "${link}" "${cfg_path}"
+singularity exec bp_simunek.sif bash scripts/singularity_run_script.sh "${link}" "${cfg_path}" "${head_address}"
 
 # Kill the sync process when the job completes
 kill $SYNC_PID
