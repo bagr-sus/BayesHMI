@@ -63,7 +63,7 @@ parameters:
 
 sampler_parameters:
   # how many samples to collect
-  sample_count: 50
+  sample_count: 20
   # how many samples to scrap
   tune_count: 0
   # how many chains to run
