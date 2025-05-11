@@ -60,7 +60,7 @@ class Flow123dSimulation:
             workdir_override=False
 
         if workdir_override:
-            if "env_path" in config:
+            if "env_path" not in config:
                 logging.warning("No env_path provided for workdir override, defaulting to SCRATCHDIR")
                 self.env_path = "SCRATCHDIR"
             else:
