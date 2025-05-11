@@ -20,9 +20,6 @@ import scipy.integrate
 import scipy.interpolate
 
 from bp_simunek import common
-from bp_simunek.simulation.flow_wrapper import setup_config
-
-
 
 def generate_time_axis(config_dict):
     end_time = float(config_dict["end_time"])
