@@ -1,5 +1,5 @@
 #!/bin/bash
-#set -x
+set -x
 head_address=$1
 cfg_path=$2
 
