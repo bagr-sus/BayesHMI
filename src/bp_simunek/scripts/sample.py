@@ -28,7 +28,7 @@ def sample():
 
     os.chdir(script_dir)
     observe_path = Path(cfg_path).absolute()
-    template_dir = Path(cfg_path).absolute()
+    #template_dir = Path(cfg_path).absolute()
     workdir = os.environ.get("SCRATCHDIR")
     if workdir is None:
         work_dir = Path(ROOT_DIR, "output", "test12").absolute()
@@ -38,7 +38,7 @@ def sample():
     logging.info("Using workdir %s", work_dir)
 
     # copy template to workdir
-    shutil.copytree(template_dir, work_dir, dirs_exist_ok=True)
+    #shutil.copytree(template_dir, work_dir, dirs_exist_ok=True)
 
     # init wrapper - load config
     wrap = Wrapper(work_dir)
