@@ -6,6 +6,7 @@ from functools import partial
 from enum import Enum
 import re
 from copy import deepcopy
+import sys
 
 import numpy as np
 import scipy.stats as sps
@@ -39,6 +40,11 @@ NCR_DEFAULT = 1
 B_STAR_DEFAULT = 1e-6
 ARCHIVE_LIMIT_DEFAULT = 0
 ADAPTIVE_LIKELIHOOD_DEFAULT = False
+
+logging.basicConfig(
+    level=logging.DEBUG,        # Capture all messages at DEBUG level and above
+    stream=sys.stdout
+)
 
 @ray.remote
 class DataLogger():
