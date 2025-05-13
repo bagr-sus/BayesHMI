@@ -222,6 +222,9 @@ class TinyDAFlowWrapper():
                 case "KernelMALA":
                     self.proposal = tda.KernelMALA
                     logging.info("Using Kernel MALA proposal")
+                case "IS":
+                    self.proposal = tda.IndependenceSampler
+                    logging.info("Using Independence Sampler proposal")
                 case _:
                     self.proposal = tda.GaussianRandomWalk
                     logging.warning(f"Incorrect sampler specified, defaulting to {PROPOSAL_DEFAULT}")
@@ -450,7 +453,9 @@ class TinyDAFlowWrapper():
         elif self.proposal == tda.KernelMALA:
             logging.info("Using Kernel MALA")
             proposal = tda.KernelMALA(M=5000, t0=2000, scaling=self.scaling, adaptive=self.adaptive, gamma=self.gamma, period=self.adaptivity_period)
-
+        elif self.proposal == tda.IndependenceSampler:
+            logging.info("Using Independence Sampler")
+            proposal = tda.IndependenceSampler(self.prior)
 
         # starting point estimates via differential evolution
         # bounds for DE
