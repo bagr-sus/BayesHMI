@@ -327,13 +327,24 @@ class TinyDAFlowWrapper():
         self.is_parallel = self.number_of_chains > 1 and ray_is_available and not self.force_sequential
 
         # setup logging
+        # force the logger to exist at the head node
+        nodes = ray.nodes()
+        head_node = [node for node in nodes if node["NodeManagerAddress"] == ray._private.services.get_node_ip_address()][0]
+        head_node_id = head_node["NodeID"]
+
         logging_files = {
             "observe_times": os.path.join(self.flow_wrapper.sim._config["work_dir"], "observe_times.txt"),
             "chain_delay": os.path.join(self.flow_wrapper.sim._config["work_dir"], "chain_delay.txt"),
             "observe_fails": os.path.join(self.flow_wrapper.sim._config["work_dir"], "observe_fails.txt"),
             "proposal_logs": os.path.join(self.flow_wrapper.sim._config["work_dir"], "proposal_logs.csv")
         }
-        self.logger_ref = DataLogger.remote(logging_files)
+        # scheduling strategy to add node affinity for head node
+        self.logger_ref = DataLogger.options(
+            scheduling_strategy=ray.util.scheduling_strategies.NodeAffinitySchedulingStrategy(
+                node_id=head_node_id,
+                soft=False  # hard constraint
+            )
+        ).remote(logging_files)
         logging.info("Using following logger files:")
         logging.info(logging_files)
 
