@@ -19,6 +19,8 @@ from ..simulation.measured_data import MeasuredData
 from ..common.memoize import File
 from ..samplers.surrogates.flow_torch_wrapper import Wrapper as NNWrapper
 from ..simulation.flow_wrapper import Wrapper as FlowWrapper
+from ..samplers.nn_model import NNModel
+from ..samplers.transforms import new_to_old_model, transform_params
 
 
 NUMBER_OF_CHAINS_DEFAULT = 1
@@ -129,7 +131,7 @@ class TinyDAFlowWrapper():
 
         # start ray before tinyda
         if not ray.is_initialized():
-            ray.init(address="auto")
+            ray.init()
 
     def set_default_sampler_params(self):
         self.is_parallel = IS_PARALLEL_DEFAULT
@@ -421,8 +423,7 @@ class TinyDAFlowWrapper():
                 wrapper.sim._config["mesh"] = model["file"]
                 forward_model = partial(self.flow_model, level=level, wrapper=wrapper)
             elif model["type"] == "nn":
-                wrapper = NNWrapper(os.path.join(self.config["work_dir"], model["file"]), boreholes=boreholes)
-                forward_model = partial(self.nn_model, wrapper=wrapper)
+                forward_model = NNModel(model["file"], self.config, self.priors, boreholes, self.measured_len)
 
             posterior_level = tda.Posterior(self.prior, loglike, forward_model)
             posteriors.append(posterior_level)
@@ -553,25 +554,14 @@ class TinyDAFlowWrapper():
             })
 
         self.priors = priors
-        self.prior = tda.distributions.JointPrior([prior["dist"] for prior in priors])
-
-    def transform_params(self, params):
-        trans_params = []
-        for param, prior in zip(params, self.priors):
-            match prior["type"]:
-                case "lognorm":
-                    trans_param = np.exp(param)
-                case "truncnorm":
-                    a, b, mu, sigma = prior["params"]
-                    lower_bound = (a - mu) / sigma
-                    upper_bound = (b - mu) / sigma
-                    phi_a = sps.norm.cdf(lower_bound)
-                    phi_b = sps.norm.cdf(upper_bound)
-                    phi_param = sps.norm.cdf(param, loc=mu, scale=sigma)
-                    trans_param = sps.norm.ppf((phi_b - phi_a)*phi_param + phi_a)*sigma + mu
-
-            trans_params.append(trans_param)
-        return trans_params
+        #self.prior = tda.distributions.JointPrior([prior["dist"] for prior in priors])
+        self.prior = sps.multivariate_normal(
+            mean = [prior["dist"].mean() for prior in priors],
+            cov = np.multiply(
+                np.power([prior["dist"].std() for prior in priors], 2),
+                np.eye(len(priors))
+            ))
+        logging.info(self.prior)
 
     def nn_model(self, params, wrapper):
         # log model info
@@ -645,7 +635,7 @@ class TinyDAFlowWrapper():
         logging.info("Raw input:")
         logging.info(params)
 
-        trans_params = np.array(self.transform_params(params))
+        trans_params = np.array(transform_params(params, self.priors))
 
         # Start time measurement of model
         start = time.time()
@@ -730,12 +720,3 @@ class TinyDAFlowWrapper():
 
 
         return data
-
-    def new_to_old_model(self, is_x, is_y, k0, eps, delta, gamma, is_z=60e6, sigma_c=55e6):
-        kr = k0 / eps
-        sigma_0 = -(is_x + is_y + is_z) / 3
-        gamma_old = gamma / sigma_c
-        km = delta
-        beta = np.log((1 - 1 / eps) * k0 / delta) / sigma_0
-
-        return kr, km, beta, gamma_old
