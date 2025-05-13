@@ -127,6 +127,10 @@ class TinyDAFlowWrapper():
         # setup priors from config of flow wrapper
         self.setup_priors(self.config)
 
+        # start ray before tinyda
+        if not ray.is_initialized():
+            ray.init(address="auto")
+
     def set_default_sampler_params(self):
         self.is_parallel = IS_PARALLEL_DEFAULT
         self.number_of_chains = NUMBER_OF_CHAINS_DEFAULT
