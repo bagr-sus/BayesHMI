@@ -78,7 +78,7 @@ sampler_parameters:
   # how often to adapt scaling
   proposal_adaptivity_period: 5000
   proposal_gamma: 0.05
-  proposal_scaling: 0.05
+  proposal_scaling: 0.025
   m0: 5000
   delta: 3
   lcr: 8
@@ -91,7 +91,7 @@ models:
     type: nn
     file: model_TSX_large.pth
     noise_cov: 400
-    subchain_length: 100
+    subchain_length: 10
 #  - name: default
 #    type: flow
 #    file: tunnel_mesh_cut_coarse_healed
