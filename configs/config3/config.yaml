@@ -63,11 +63,11 @@ parameters:
 
 sampler_parameters:
   # how many samples to collect
-  sample_count: 1600
+  sample_count: 150
   # how many samples to scrap
   tune_count: 0
   # how many chains to run
-  chain_count: 100
+  chain_count: 200
   # whether to force sequential sampling, even with chains > 1 and ray present
   force_sequential: False
   # standard deviation of noise function
