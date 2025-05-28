@@ -422,8 +422,13 @@ class TinyDAFlowWrapper():
                 wrapper = deepcopy(self.flow_wrapper)
                 wrapper.sim._config["mesh"] = model["file"]
                 forward_model = partial(self.flow_model, level=level, wrapper=wrapper)
-            elif model["type"] == "nn":
-                forward_model = NNModel(model["file"], self.config, self.priors, boreholes, self.measured_len)
+            elif model["type"] == "nn" or model["type"] == "nn2":
+                if model["type"] == "nn2":
+                    nn_type = "new"
+                else:
+                    nn_type = "old"
+                
+                forward_model = NNModel(model["file"], self.config, self.priors, boreholes, self.measured_len, nn_type=nn_type)
 
             posterior_level = tda.Posterior(self.prior, loglike, forward_model)
             posteriors.append(posterior_level)
@@ -457,30 +462,6 @@ class TinyDAFlowWrapper():
         elif self.proposal == tda.IndependenceSampler:
             logging.info("Using Independence Sampler")
             proposal = tda.IndependenceSampler(self.prior)
-
-        # starting point estimates via differential evolution
-        # bounds for DE
-        #bounds = []
-        #for prior in self.priors:
-        #    params = prior["params"]
-        #    match prior["type"]:
-        #        case "lognorm":
-        #            mean, std = params
-        #        case "truncnorm":
-        #            _, _, mean, std = params
-        #    
-        #    bounds.append((mean + 3 * std, mean - 3 * std))
-        #
-        # run DE
-        # TODO add modularity to this, if it works decently
-        #initial_parameters = tda.get_MAP(posteriors[-1],
-        #    method = "differential_evolution",
-        #    workers = 1,
-        #    popsize = 10,
-        #    maxiter = 3,
-        #    x0 = posteriors[-1].prior.rvs(),
-        #    bounds = bounds
-        #    )
 
         initial_parameters = [posteriors[0].prior.rvs() for i in range(self.number_of_chains)]
         error_model = None
