@@ -4,14 +4,18 @@ import os
 import numpy as np
 import logging
 
-from bp_simunek.samplers.surrogates.flow_torch_wrapper import Wrapper
+from bp_simunek.samplers.surrogates.flow_torch_wrapper import Wrapper as WrapperOld
+from bp_simunek.samplers.surrogates.flow_torch_wrapper_new import Wrapper as WrapperNew
 from bp_simunek.samplers.transforms import new_to_old_model, transform_params
 
 
 class NNModel():
 
-    def __init__(self, filepath, config, priors, boreholes=["V1"], measured_len=0):
-        self.wrapper = Wrapper(os.path.join(config["work_dir"], filepath), boreholes=boreholes)
+    def __init__(self, filepath, config, priors, boreholes=["V1"], measured_len=0, nn_type="old"):
+        if nn_type == "new":
+            self.wrapper = WrapperNew(os.path.join(config["work_dir"], filepath), boreholes=boreholes)
+        else:
+            self.wrapper = WrapperOld(os.path.join(config["work_dir"], filepath), boreholes=boreholes)
         self.measured_len = measured_len
         self.priors = priors
         self.grad = np.zeros((len(priors), 1))
@@ -45,9 +49,10 @@ class NNModel():
 
         data, gradient = self.wrapper.get_observations()
 
-        self.grad = np.squeeze(gradient.numpy())
-        logging.info("Gradient:")
-        logging.info(self.grad)
+        if gradient is not None:
+            self.grad = np.squeeze(gradient.numpy())
+            logging.info("Gradient:")
+            logging.info(self.grad)
 
         # Dummy value to force sampler to reject sample
         if data is None:
