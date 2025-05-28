@@ -62,7 +62,7 @@ parameters:
 
 sampler_parameters:
   # how many samples to collect
-  sample_count: 150
+  sample_count: 1000
   # how many samples to scrap
   tune_count: 0
   # how many chains to run
@@ -72,26 +72,25 @@ sampler_parameters:
   # standard deviation of noise function
   noise_cov: 50
   # proposal to use
-  proposal: "MALA"  
+  proposal: "DREAM"  
   # whether to adapt scaling
-  proposal_adaptive: False
+  proposal_adaptive: True
   # how often to adapt scaling
-  proposal_adaptivity_period: 5000
+  proposal_adaptivity_period: 20
   proposal_gamma: 0.05
-  proposal_scaling: 0.025
-  m0: 5000
+  m0: 500
   delta: 3
   lcr: 8
   b_star: 0.001
   archive_limit: 0
-  adaptive_likelihood: True
+  adaptive_likelihood: False
 
 models:
   - name: nn_surrogate
-    type: nn
+    type: nn2
     file: model_TSX_large.pth
     noise_cov: 400
-    subchain_length: 10
+    subchain_length: 25
 #  - name: default
 #    type: flow
 #    file: tunnel_mesh_cut_coarse_healed
