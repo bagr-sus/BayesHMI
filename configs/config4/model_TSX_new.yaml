@@ -1,0 +1,10 @@
+hidden_sizes:
+- 16
+- 32
+- 64
+- 128
+- 128
+- 128
+input_size: 8
+output_size: 52
+state_dict_path: model_TSX_new.pth
