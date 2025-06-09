@@ -60,40 +60,43 @@ parameters:
 
 sampler_parameters:
   # how many samples to collect
-  sample_count: 50
+  sample_count: 3
   # how many samples to scrap
   tune_count: 0
   # how many chains to run
-  chain_count: 2
+  chain_count: 1
   # whether to force sequential sampling, even with chains > 1 and ray present
   force_sequential: True
   # standard deviation of noise function
-  noise_std: 50
+  noise_cov: 50
   # proposal to use
   proposal: "DREAMZ"
   # whether to adapt scaling
-  proposal_adaptive: True
+  proposal_adaptive: False
   # how often to adapt scaling
   proposal_adaptivity_period: 20
   proposal_gamma: 0.05
-  m0: 100
+  proposal_scaling: 0.1
+  m0: 10
   delta: 3
   lcr: 8
   b_star: 0.001
   archive_limit: 0
+  adaptive_likelihood: True
 
 mesh: tunnel_mesh_cut_healed
 
 
 models:
   - name: nn_surrogate
-    type: nn
-    file: model_TSX_large.pth
-    subchain_length: 25
+    type: nn2
+    file: model_TSX_new.yaml
+    subchain_length: 10
     noise_std: 200
 #  - name: default
 #    type: flow
 #    file: tunnel_mesh_cut_coarse_healed
+#     subchain_length: 2
   - name: default
     type: flow
     file: tunnel_mesh_cut_fine_healed

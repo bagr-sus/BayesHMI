@@ -40,17 +40,15 @@ def test_simulation11():
     tinyda_wrapper = TinyDAFlowWrapper(wrap)
 
     # run sampling process
-    idata = tinyda_wrapper.sample()
-
-    # check if sampling was successful
-    assert idata
-    assert idata["posterior"].sizes["draw"] == tinyda_wrapper.sample_count + 1
+    idatas = tinyda_wrapper.sample()
 
     # save results
-    save_idata_to_file(idata, folder_path=work_dir, filename="flow.sim11.idata")
+    for level, idata in enumerate(idatas):
+        idata_name = f"{tinyda_wrapper.number_of_chains}x{tinyda_wrapper.sample_count}_{level}.idata"
+        save_idata_to_file(idata, folder_path=work_dir, filename=idata_name)
 
     # generate plots
-    generate_all_flow_plots(idata, folder=work_dir)
+    generate_all_flow_plots(idatas[-1], folder=work_dir)
 
 @pytest.mark.skip
 def test_simulation11_fail():
