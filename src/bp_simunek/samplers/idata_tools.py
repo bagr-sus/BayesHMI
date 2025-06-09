@@ -1,6 +1,7 @@
 import os
 import pathlib
 import pickle
+import logging
 
 import arviz as az
 import numpy as np
@@ -52,3 +53,19 @@ def idata_from_observe_times(csv_input, mimic_idata, data_index=3):
 
 
     return idata
+
+def thin_inference_data(idata: az.InferenceData, n: int) -> az.InferenceData:
+    # Go through each group in the InferenceData
+    logging.info(f"Thinning InferenceData by {n}x")
+    thinned_groups = {}
+    for group_name in idata._groups:
+        group = getattr(idata, group_name, None)
+        if group is not None:
+            # Check if 'draw' is a dimension, then thin along that dimension
+            if "draw" in group.dims:
+                thinned_group = group.isel(draw=slice(0, None, n))
+            else:
+                thinned_group = group
+            thinned_groups[group_name] = thinned_group
+
+    return az.InferenceData(**thinned_groups)

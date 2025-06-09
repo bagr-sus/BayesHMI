@@ -21,6 +21,7 @@ from ..samplers.surrogates.flow_torch_wrapper import Wrapper as NNWrapper
 from ..simulation.flow_wrapper import Wrapper as FlowWrapper
 from ..samplers.nn_model import NNModel
 from ..samplers.transforms import new_to_old_model, transform_params
+from ..samplers.idata_tools import thin_inference_data
 
 
 NUMBER_OF_CHAINS_DEFAULT = 1
@@ -331,7 +332,7 @@ class TinyDAFlowWrapper():
                 raise Exception("Unsupported distribution, no 'std' attribute.")
         return np.multiply(np.eye(len(cov_vector)), cov_vector)
 
-    def sample(self) -> az.InferenceData:
+    def sample(self) -> list:
         # check whether parallel sampling or not
         self.is_parallel = self.number_of_chains > 1 and ray_is_available and not self.force_sequential
 
@@ -391,6 +392,8 @@ class TinyDAFlowWrapper():
         # combine into posterior
         posteriors = []
         subchain_lengths = []
+
+        model_count = len(self.config["models"])
 
         for level, model in enumerate(self.config["models"]):
             logging.info("Model level: %i", level)
@@ -483,28 +486,57 @@ class TinyDAFlowWrapper():
             subchain_length=subchain_lengths)
 
         # check and save samples
-        idata = tda.to_inference_data(chain=samples, parameter_names=[prior["name"] for prior in self.priors], burnin=self.tune_count)
+        parameter_names = [prior["name"] for prior in self.priors]
 
-        # add prior info to idata
-        for idx, param in enumerate(idata["posterior"]):
-            prior = self.priors[idx]
-            bounds = prior["params"]
-            match prior["type"]:
-                case "lognorm":
-                    mean, std = bounds
-                case "truncnorm":
-                    _, _, mean, std = bounds
+        levels = [""]
+        if model_count == 2:
+            levels = ["fine", "coarse"]
+        elif model_count > 2:
+            levels = [str(i) for i in range(model_count - 1, -1, -1)]
 
-            idata["posterior"][param].attrs["prior_mean"] = mean
-            idata["posterior"][param].attrs["prior_std"] = std
+        logging.info("Levels: %s", levels)
 
-        # add observed data to idata
-        idata["sample_stats"].attrs["observed"] = self.observed
+        # convert samples to inference data
+        # one inference data object per level
+        # ordered by levels descending
+        idatas = []
+        current_subchain_length = 1
+        for level in levels:
+            idata = tda.to_inference_data(chain=samples, parameter_names=parameter_names, burnin=self.tune_count, level=level)
+            # add prior info to idata
+            for idx, param in enumerate(idata["posterior"]):
+                prior = self.priors[idx]
+                bounds = prior["params"]
+                match prior["type"]:
+                    case "lognorm":
+                        mean, std = bounds
+                    case "truncnorm":
+                        _, _, mean, std = bounds
 
-        # add observed times to idata
-        idata["sample_stats"].attrs["times"] = self.times
+                idata["posterior"][param].attrs["prior_mean"] = mean
+                idata["posterior"][param].attrs["prior_std"] = std
 
-        return idata
+            # add observed data to idata
+            idata["sample_stats"].attrs["observed"] = self.observed
+
+            # add observed times to idata
+            idata["sample_stats"].attrs["times"] = self.times
+
+            # trim idata to match dims of fine level
+            idata = thin_inference_data(idata, current_subchain_length)
+            idatas.append(idata)
+
+            # change current subchain length to match next level
+            if isinstance(subchain_lengths, list):
+                next_level = int(level) - 1
+                if next_level >= 0:
+                    current_subchain_length = current_subchain_length * subchain_lengths[next_level]
+            else:
+                current_subchain_length = subchain_lengths
+
+        # return data in reverse order, so that the fine model is last
+        idatas.reverse()
+        return idatas
 
     def setup_priors(self, config):
         """
