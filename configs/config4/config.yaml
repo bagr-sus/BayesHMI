@@ -89,7 +89,7 @@ models:
   - name: nn_surrogate
     type: nn2
     file: model_TSX_new.yaml
-    noise_cov: 50
+    noise_cov: 400
     subchain_length: 500
 #  - name: default
 #    type: flow
