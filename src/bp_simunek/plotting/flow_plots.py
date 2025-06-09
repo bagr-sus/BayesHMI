@@ -15,7 +15,7 @@ from ..samplers.surrogates.flow_torch_wrapper import Wrapper as NNwrapper
 from ..simulation.flow_wrapper import Wrapper
 from ..samplers.idata_tools import read_idata_from_file, idata_from_observe_times
 from ..plotting.plotting_tools import save_plot, save_plots_pdf_pages
-from definitions import ROOT_DIR
+from ..definitions import ROOT_DIR
 
 def plot_pressures(idata: az.InferenceData, exp):
     plt.figure()
