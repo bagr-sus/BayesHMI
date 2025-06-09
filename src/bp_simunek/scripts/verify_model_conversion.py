@@ -4,7 +4,7 @@ import numpy as np
 
 from ..samplers.tinyda_flow import TinyDAFlowWrapper
 from ..simulation.flow_wrapper import Wrapper
-from definitions import ROOT_DIR
+from ..definitions import ROOT_DIR
 
 
 new_config_path = os.path.join(ROOT_DIR, "tests", "simulation", "templates", "test_workdir11")

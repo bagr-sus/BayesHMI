@@ -6,16 +6,15 @@ import arviz as az
 import numpy as np
 import xarray as xr
 
+from ..definitions import ROOT_DIR
 
 def idata_path() -> None:
-    from definitions import ROOT_DIR
     return os.path.join(ROOT_DIR, "data", "idata")
 
 def save_idata_to_file(
         idata: az.InferenceData,
         filename: str,
         folder_path: str = idata_path()) -> None:
-    from definitions import ROOT_DIR
     # if path doesn't exist, create it
     print(f"Saving idata {filename} to {folder_path}...")
     if not os.path.exists(folder_path):

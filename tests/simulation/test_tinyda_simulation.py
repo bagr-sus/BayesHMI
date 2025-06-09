@@ -7,7 +7,7 @@ import shutil
 import pytest
 import ray
 
-from definitions import ROOT_DIR
+from bp_simunek.definitions import ROOT_DIR
 from bp_simunek.simulation.flow_wrapper import Wrapper
 from bp_simunek.samplers.tinyda_flow import TinyDAFlowWrapper
 from bp_simunek.samplers.idata_tools import save_idata_to_file

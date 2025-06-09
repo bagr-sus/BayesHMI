@@ -11,7 +11,7 @@ from ..samplers.tinyda_flow import TinyDAFlowWrapper
 from ..samplers.idata_tools import save_idata_to_file
 from ..plotting.flow_plots import generate_all_flow_plots
 
-from definitions import ROOT_DIR
+from ..definitions import ROOT_DIR
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -50,14 +50,15 @@ def sample():
     tinyda_wrapper = TinyDAFlowWrapper(wrap)
 
     # run sampling process
-    idata = tinyda_wrapper.sample()
+    idatas = tinyda_wrapper.sample()
 
     # save results
-    idata_name = f"{tinyda_wrapper.number_of_chains}x{tinyda_wrapper.sample_count}.idata"
-    save_idata_to_file(idata, folder_path=work_dir, filename=idata_name)
+    for level, idata in enumerate(idatas):
+        idata_name = f"{tinyda_wrapper.number_of_chains}x{tinyda_wrapper.sample_count}_{level}.idata"
+        save_idata_to_file(idata, folder_path=work_dir, filename=idata_name)
 
     # generate plots
-    generate_all_flow_plots(idata, folder=work_dir)
+    generate_all_flow_plots(idatas[-1], folder=work_dir)
 
 if __name__ == "__main__":
     sample()

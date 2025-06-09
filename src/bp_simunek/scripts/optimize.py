@@ -10,7 +10,7 @@ from ..simulation.flow_wrapper import Wrapper
 from ..samplers.pycma_flow import PyCMAFlowWrapper
 from ..plotting.plotting_tools import save_plot
 
-from definitions import ROOT_DIR
+from ..definitions import ROOT_DIR
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 

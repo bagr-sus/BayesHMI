@@ -4,7 +4,7 @@ import logging
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from definitions import ROOT_DIR
+from ..definitions import ROOT_DIR
 
 def graphs_path() -> None:
     return os.path.join(ROOT_DIR, "data", "graphs")
