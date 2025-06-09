@@ -26,8 +26,8 @@ class NNModel():
         #logging.info("Model level: %i", level)
         
         # transform parameters via info from priors
-        logging.info("Raw input:")
-        logging.info(params)
+        #logging.info("Raw input:")
+        #logging.info(params)
 
         trans_params = np.array(transform_params(params, self.priors))
         #logging.info("Transformed input:")
@@ -51,8 +51,8 @@ class NNModel():
 
         if gradient is not None:
             self.grad = np.squeeze(gradient.numpy())
-            logging.info("Gradient:")
-            logging.info(self.grad)
+        #    logging.info("Gradient:")
+        #    logging.info(self.grad)
 
         # Dummy value to force sampler to reject sample
         if data is None:
@@ -86,6 +86,7 @@ class NNModel():
         #if self.config["conductivity_observe_points"]:
         #    num = len(self.config["conductivity_observe_points"])
         #    data = data[:-num]
+        #logging.info("NN model output:")
         #logging.info(data)
         #logging.info(data.shape)
         return data
