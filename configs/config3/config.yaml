@@ -90,7 +90,7 @@ models:
     type: nn2
     file: model_TSX_new.yaml
     noise_cov: 100
-    subchain_length: 25
+    subchain_length: 500
 #  - name: default
 #    type: flow
 #    file: tunnel_mesh_cut_coarse_healed
