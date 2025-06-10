@@ -19,6 +19,7 @@ class NNModel():
         self.measured_len = measured_len
         self.priors = priors
         self.grad = np.zeros((len(priors), 1))
+        self.nn_type = nn_type
 
 
     def __call__(self, params):
@@ -33,13 +34,16 @@ class NNModel():
         #logging.info("Transformed input:")
         #logging.info(trans_params)
 
-        old_perms = new_to_old_model(*trans_params[2:])
-        #logging.info("Old perms:")
-        #logging.info(old_perms)
+        if self.nn_type == "old":
+            old_perms = new_to_old_model(*trans_params[2:])
+            #logging.info("Old perms:")
+            #logging.info(old_perms)
 
-        final_params = np.concatenate([trans_params[0:4], old_perms])
-        #logging.info("Final params:")
-        #logging.info(final_params)
+            final_params = np.concatenate([trans_params[0:4], old_perms])
+            #logging.info("Final params:")
+            #logging.info(final_params)
+        else:
+            final_params = trans_params
 
         # Start time measurement of model
         start = time.time()
