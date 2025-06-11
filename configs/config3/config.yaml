@@ -72,7 +72,7 @@ sampler_parameters:
   # standard deviation of noise function
   noise_cov: 50
   # proposal to use
-  proposal: "DREAM"  
+  proposal: "DREAMZ"  
   # whether to adapt scaling
   proposal_adaptive: True
   # how often to adapt scaling
@@ -90,7 +90,7 @@ models:
     type: nn2
     file: model_TSX_new.yaml
     noise_cov: 100
-    subchain_length: 25
+    subchain_length: 500
 #  - name: default
 #    type: flow
 #    file: tunnel_mesh_cut_coarse_healed
