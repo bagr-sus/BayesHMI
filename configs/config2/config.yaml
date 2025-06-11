@@ -2,10 +2,8 @@ mesh_only: False
 make_plots: False
 # if True, it removes sample dir right after the sample is collected
 clean_sample_dir: True
-workdir_override: True
 
-
-#better prior
+# better prior
 parameters:
  - name: storativity
    type: lognorm
@@ -64,42 +62,42 @@ parameters:
 
 sampler_parameters:
   # how many samples to collect
-  sample_count: 20
+  sample_count: 500
   # how many samples to scrap
   tune_count: 0
   # how many chains to run
-  chain_count: 40
+  chain_count: 20
   # whether to force sequential sampling, even with chains > 1 and ray present
   force_sequential: False
   # standard deviation of noise function
   noise_cov: 50
   # proposal to use
-  proposal: "DREAMZ"  
+  proposal: "DREAM"  
   # whether to adapt scaling
   proposal_adaptive: True
   # how often to adapt scaling
-  proposal_adaptivity_period: 2000
+  proposal_adaptivity_period: 20
   proposal_gamma: 0.05
-  m0: 25
+  m0: 500
   delta: 3
-  ncr: 8
+  lcr: 8
   b_star: 0.001
   archive_limit: 0
-  adaptive_liklihood: True
+  adaptive_likelihood: False
 
 models:
-  # - name: nn_surrogate
-  #   type: nn
-  #   file: model_TSX_large.pth
-  #   noise_cov: 200
-  #   subchain_length: 100
+  - name: nn_surrogate
+    type: nn2
+    file: model_TSX_new.yaml
+    noise_cov: 400
+    subchain_length: 25
 #  - name: default
 #    type: flow
 #    file: tunnel_mesh_cut_coarse_healed
   - name: default
     type: flow
     file: tunnel_mesh_cut_fine_healed
-    noise_cov: 200
+    noise_cov: 50
 
 # synthetic observe params
 #synthetic_data:

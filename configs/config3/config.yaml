@@ -3,62 +3,62 @@ make_plots: False
 # if True, it removes sample dir right after the sample is collected
 clean_sample_dir: True
 
-# # better prior
-# parameters:
-#  - name: storativity
-#    type: lognorm
-#    bounds: [-16.4340685618576, 3.0]
-#  - name: young_modulus
-#    type: lognorm
-#    bounds: [24.8176103991685, 0.7]
-#  - name: init_stress_x
-#    type: lognorm
-#    bounds: [ 17.6221730477346, 0.75]
-#  - name: init_stress_y
-#    type: lognorm
-#    bounds: [ 16.2134058307626, 0.75]
-# #  - name: init_stress_z
-# #    type: lognorm
-# #    bounds: [ 17.9098551201864, 0.3]
-#  - name: perm_k0
-#    type: lognorm
-#    bounds: [ -48.8651125766410, 3.0]
-#  - name: perm_eps
-#    type: truncnorm
-#    bounds : [1.1, 1000, 33, 21]
-#  - name: perm_delta
-#    type: lognorm
-#    bounds: [ -36.8413614879047, 0.22]
-#  - name: perm_gamma
-#    type: lognorm
-#    bounds: [ 1.79175946922806, 0.22]
-
-# worse prior
+# better prior
 parameters:
-  - name: storativity
-    type: lognorm
-    bounds: [-19, 6.0]
-  - name: young_modulus
-    type: lognorm
-    bounds: [22, 3]
-  - name: init_stress_x
-    type: lognorm
-    bounds: [ 19, 1.5]
-  - name: init_stress_y
-    type: lognorm
-    bounds: [ 15, 1.5]
-  - name: perm_k0
-    type: lognorm
-    bounds: [-46, 6]
-  - name: perm_eps
-    type: truncnorm
-    bounds : [1.1, 1000, 28, 25]
-  - name: perm_delta
-    type: lognorm
-    bounds: [ -36, 1 ]
-  - name: perm_gamma
-    type: lognorm
-    bounds: [ 1.6, 2 ]
+ - name: storativity
+   type: lognorm
+   bounds: [-16.4340685618576, 3.0]
+ - name: young_modulus
+   type: lognorm
+   bounds: [24.8176103991685, 0.7]
+ - name: init_stress_x
+   type: lognorm
+   bounds: [ 17.6221730477346, 0.75]
+ - name: init_stress_y
+   type: lognorm
+   bounds: [ 16.2134058307626, 0.75]
+#  - name: init_stress_z
+#    type: lognorm
+#    bounds: [ 17.9098551201864, 0.3]
+ - name: perm_k0
+   type: lognorm
+   bounds: [ -48.8651125766410, 3.0]
+ - name: perm_eps
+   type: truncnorm
+   bounds : [1.1, 1000, 33, 21]
+ - name: perm_delta
+   type: lognorm
+   bounds: [ -36.8413614879047, 0.22]
+ - name: perm_gamma
+   type: lognorm
+   bounds: [ 1.79175946922806, 0.22]
+
+# # worse prior
+# parameters:
+#   - name: storativity
+#     type: lognorm
+#     bounds: [-19, 6.0]
+#   - name: young_modulus
+#     type: lognorm
+#     bounds: [22, 3]
+#   - name: init_stress_x
+#     type: lognorm
+#     bounds: [ 19, 1.5]
+#   - name: init_stress_y
+#     type: lognorm
+#     bounds: [ 15, 1.5]
+#   - name: perm_k0
+#     type: lognorm
+#     bounds: [-46, 6]
+#   - name: perm_eps
+#     type: truncnorm
+#     bounds : [1.1, 1000, 28, 25]
+#   - name: perm_delta
+#     type: lognorm
+#     bounds: [ -36, 1 ]
+#   - name: perm_gamma
+#     type: lognorm
+#     bounds: [ 1.6, 2 ]
 
 sampler_parameters:
   # how many samples to collect
@@ -90,7 +90,7 @@ models:
     type: nn2
     file: model_TSX_new.yaml
     noise_cov: 100
-    subchain_length: 500
+    subchain_length: 25
 #  - name: default
 #    type: flow
 #    file: tunnel_mesh_cut_coarse_healed
