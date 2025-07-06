@@ -68,3 +68,22 @@ def thin_inference_data(idata: az.InferenceData, n: int) -> az.InferenceData:
             thinned_groups[group_name] = thinned_group
 
     return az.InferenceData(**thinned_groups)
+
+def select_posterior_subset(idata: az.InferenceData, mask: np.ndarray) -> az.InferenceData:
+    posterior = idata["posterior"]
+    posterior_filtered = posterior.copy()
+    datavar = list(posterior.data_vars.keys())[0]
+    mask = mask.reshape(posterior[datavar].values.shape)
+
+    for var in posterior.data_vars:
+        data = posterior[var].values
+
+        # Mask invalid values
+        masked_data = np.where(mask, data, np.nan)
+        posterior_filtered[var] = (posterior[var].dims, masked_data)
+
+    # Reconstruct InferenceData with filtered posterior
+    idata_filtered = idata.copy()
+    idata_filtered.posterior = posterior_filtered
+
+    return idata_filtered
