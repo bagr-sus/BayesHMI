@@ -12,8 +12,10 @@ import scipy.stats as sps
 
 from ..samplers.tinyda_flow import TinyDAFlowWrapper
 from ..samplers.surrogates.flow_torch_wrapper import Wrapper as NNwrapper
+from ..samplers.surrogates.flow_torch_wrapper_new import Wrapper as NNWrapperNew
 from ..simulation.flow_wrapper import Wrapper
-from ..samplers.idata_tools import read_idata_from_file, idata_from_observe_times
+from ..samplers.transforms import transform_params, new_to_old_model
+from ..samplers.idata_tools import read_idata_from_file, select_posterior_subset
 from ..plotting.plotting_tools import save_plot, save_plots_pdf_pages
 from ..definitions import ROOT_DIR
 
@@ -273,7 +275,7 @@ def plot_likelihood(idata: az.InferenceData, cutoff=-100):
 
     return figs
 
-def plot_pair_against_nn(idata: az.InferenceData, config_path=None, nn_path=None):
+def plot_pair_against_nn(idata: az.InferenceData, config_path=None, nn_path=None, surrogate_idata=None):
     # setup observed data
     observed_data = idata["posterior_predictive"]
 
@@ -292,8 +294,6 @@ def plot_pair_against_nn(idata: az.InferenceData, config_path=None, nn_path=None
     
     merged_posterior = np.concatenate(flattened_posterior, axis=1)
 
-    # setup likelihood data
-    likelihood_data = idata["sample_stats"]["likelihood"].values.reshape(-1, 1)
 
     # setup flow and tinyda wrappers for parameter conversion
     if config_path is None:
@@ -303,78 +303,121 @@ def plot_pair_against_nn(idata: az.InferenceData, config_path=None, nn_path=None
     wrapper_new = Wrapper(config_path)
     wrapper_new.set_observe_path(observe_path)
     wrapper = TinyDAFlowWrapper(wrapper_new)
-    target_observe = idata["sample_stats"].attrs["observed"]
+    target_observed = idata["sample_stats"].attrs["observed"]
 
     # setup NN wrapper
 
     if nn_path is None:
-        nn_path = os.path.join(ROOT_DIR, "src", "bp_simunek", "samplers", "surrogates", "model_TSX_large.pth")
+        #nn_path = os.path.join(ROOT_DIR, "src", "bp_simunek", "samplers", "surrogates", "model_TSX_large.pth")
+        nn_path = os.path.join(ROOT_DIR, "src", "bp_simunek", "samplers", "surrogates", "model_TSX_new.yaml")
+
 
     assert os.path.exists(nn_path), f"NN model not found at {nn_path}"
 
-    nn_wrapper = NNwrapper(nn_path, boreholes=["H1"])
+    #nn_wrapper = NNwrapper(nn_path, boreholes=["H1"])
+    nn_wrapper = NNWrapperNew(nn_path, boreholes=["H1"])
 
-    nn_error_data = np.empty((0, 1))
-    flow_error_data = np.empty((0, 1))
-    nn_error_data_piecewise = np.empty((0, 1))
+    prior_means = []
+    prior_stds = []
+    for param in idata["posterior"].data_vars:
+        mean = idata["posterior"][param].attrs["prior_mean"]
+        std = idata["posterior"][param].attrs["prior_std"]
+        prior_means += [mean]
+        prior_stds += [std]
 
-    for posterior, observed in zip(merged_posterior, merged_observed):
 
-        # transform params for the NN
-        new_params = wrapper.transform_params(posterior)
-        old_perms = wrapper.new_to_old_model(*new_params[2:])
-        old_params = np.concatenate([new_params[0:4], old_perms])
+    if surrogate_idata is None:
+        surrogate_observed = np.empty((0, np.array(target_observed).shape[0]))
+        for posterior, observed in zip(merged_posterior, merged_observed):
 
-        # get observe from NN
-        print(old_params)
-        nn_wrapper.set_parameters(old_params)
-        nn_observed = nn_wrapper.get_observations()
+            # transform params for the NN
+            #new_params = transform_params(posterior)
+            new_params = np.exp(posterior)
+            #old_perms = new_to_old_model(*new_params[2:])
+            #old_params = np.concatenate([new_params[0:4], old_perms])
 
-        # compute norm between NN observe and real observe
-        norm = np.linalg.norm(nn_observed - observed)
-        nn_error_data = np.vstack((nn_error_data, norm))
+            # get observe from NN
+            #print(old_params)
+            nn_wrapper.set_parameters(new_params)
+            nn_observed, _ = nn_wrapper.get_observations()
+            surrogate_observed = np.vstack((surrogate_observed, nn_observed))
+    else:
+        surrogate_observed = idata_surrogate["posterior_predictive"]
+        surrogate_observed = [observed_data[var].values.reshape(-1, 1)
+                  for var in observed_data.data_vars]
+    
+    # compute norm between NN observe and real observe
+    nn_error_data = np.linalg.norm(surrogate_observed - target_observed, axis=1)
+    # compute norm between flow observe and real observe
+    flow_error_data = np.linalg.norm(merged_observed - target_observed, axis=1)
 
-        # compute norm between flow observe and real observe
-        norm = np.linalg.norm(observed - target_observe)
-        flow_error_data = np.vstack((flow_error_data, norm))
+    nn_flow_diff = np.linalg.norm(merged_observed - surrogate_observed, axis=1)
 
-        # compute norm between NN observe and real in individual time points
-        norm = nn_observed - observed
-        nn_error_data_piecewise = np.concatenate((nn_error_data_piecewise.flatten(), norm))
+    cutoff = 1e5
+    mask = (nn_error_data < cutoff) & (flow_error_data < cutoff) & (nn_flow_diff < cutoff)
+    flow_fails = flow_error_data[~mask]
+    flow_error_data = flow_error_data[mask]
+    nn_fails = nn_error_data[~mask]
+    nn_error_data = nn_error_data[mask]
 
+
+
+    # compute norm between NN observe and flow observe in individual time points
+    nn_error_data_piecewise = np.array(surrogate_observed - merged_observed).reshape(-1)
 
     fig_pair, ax_pair = plt.subplots(len(new_params) - 1, len(new_params) - 1, figsize=(16, 9))
-    
+    fig_pair.suptitle("Pair plot obarvený pomocí L2(nn - flow), černě obarveny selhání flowa")
+    fig_pair.set_constrained_layout(True)
+
     cmap = plt.cm.get_cmap("plasma")
-    norm = mcolors.Normalize(vmin=nn_error_data.min(), vmax=nn_error_data.max())
     
     # clip out observe fails
-    nn_error_data = nn_error_data.clip(0, 1000)
+    nn_flow_diff = nn_flow_diff.clip(0, cutoff)
+    norm = mcolors.LogNorm(vmin=nn_flow_diff[mask].min(), vmax=nn_flow_diff[mask].max())
+    fig_pair.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax_pair.ravel(), format=mpl.ticker.LogFormatterSciNotation())
 
     az.plot_pair(
-        idata,
+        select_posterior_subset(idata, mask),
         kind="scatter",
-        scatter_kwargs={"c": nn_error_data, "cmap": cmap},
+        scatter_kwargs={"c": nn_flow_diff, "cmap": cmap, "norm": norm},
         colorbar=True,
-        ax=ax_pair)
+        ax=ax_pair
+    )
+
+    az.plot_pair(
+        select_posterior_subset(idata, ~mask),
+        kind="scatter",
+        scatter_kwargs={"c": "black", "s": 80},
+        ax=ax_pair
+    )
+
+    nn_flow_diff_fails = nn_flow_diff[~mask]
+    nn_flow_diff = nn_flow_diff[mask]
+
 
     fig_hist, ax_hist = plt.subplots(figsize=(16, 9))
-    _, bins, patches = ax_hist.hist(nn_error_data, bins=100)
+    logbins = np.logspace(np.log10(nn_flow_diff.min()), np.log10(nn_flow_diff.max()))
+    _, bins, patches = ax_hist.hist(nn_flow_diff, bins=logbins)
+    fig_hist.suptitle("Histogram L2(nn - flow)")
+    ax_hist.set_xlabel("Norma L2(nn - flow)")
+    ax_hist.set_ylabel("Počet")
+    ax_hist.set_xscale('log')
 
     for patch, binn in zip(patches, bins[:-1]):
         patch.set_facecolor(cmap(norm(binn)))  # Color each bin based on its value
 
     # data for best match between NN and full model
-    best_match_idx = np.argmin(nn_error_data)
+    best_match_idx = np.argmin(nn_flow_diff)
 
-    best_match_observe = merged_observed[best_match_idx]
+    best_match_observe = (merged_observed[mask])[best_match_idx]
 
-    best_match_posterior = merged_posterior[best_match_idx]
-    new_params = wrapper.transform_params(best_match_posterior)
-    old_perms = wrapper.new_to_old_model(*new_params[2:])
-    old_params = np.concatenate([new_params[0:4], old_perms])
-    nn_wrapper.set_parameters(old_params)
-    best_match_nn = nn_wrapper.get_observations()
+    #best_match_posterior = merged_posterior[best_match_idx]
+    #new_params = np.exp(best_match_posterior)
+    #old_perms = wrapper.new_to_old_model(*new_params[2:])
+    #old_params = np.concatenate([new_params[0:4], old_perms])
+    #nn_wrapper.set_parameters(new_params)
+    #best_match_nn, _ = nn_wrapper.get_observations()
+    best_match_nn = (surrogate_observed[mask])[best_match_idx]
 
     fig_pressure, ax_pressure = plt.subplots(figsize=(16, 9))
 
@@ -383,37 +426,41 @@ def plot_pair_against_nn(idata: az.InferenceData, config_path=None, nn_path=None
     ax_pressure.set_ylabel("Tlaková výška [m]")
     ax_pressure.grid(True)
 
-    ax_pressure.plot(target_observe, color="black", label="Naměřená data")
-    ax_pressure.plot(best_match_observe, color="red", label=f"Flow výstup pro nejlepší shodu s NN (l^2 = {nn_error_data[best_match_idx]})")
-    ax_pressure.plot(best_match_nn, color="blue", label=f"NN výstup pro nejlepší shodu s flowem (l^2 = {nn_error_data[best_match_idx]})")
+    ax_pressure.plot(target_observed, color="black", label="Naměřená data")
+    ax_pressure.plot(best_match_observe, color="red", label=f"Flow výstup pro nejlepší shodu s NN (l^2 = {nn_flow_diff[best_match_idx]})")
+    ax_pressure.plot(best_match_nn, color="blue", label=f"NN výstup pro nejlepší shodu s flowem (l^2 = {nn_flow_diff[best_match_idx]})")
 
     # data for best match between full model and real data, with corresponding nn data
     best_fit_idx = np.argmin(flow_error_data)
 
-    best_fit_observe = merged_observed[best_fit_idx]
+    best_fit_observe = (merged_observed[mask])[best_fit_idx]
 
-    best_fit_posterior = merged_posterior[best_fit_idx]
-    new_params = wrapper.transform_params(best_fit_posterior)
-    old_perms = wrapper.new_to_old_model(*new_params[2:])
-    old_params = np.concatenate([new_params[0:4], old_perms])
-    nn_wrapper.set_parameters(old_params)
-    best_fit_nn = nn_wrapper.get_observations()
+    #best_fit_posterior = merged_posterior[best_fit_idx]
+    #new_params = np.exp(best_fit_posterior)
+    #old_perms = wrapper.new_to_old_model(*new_params[2:])
+    #old_params = np.concatenate([new_params[0:4], old_perms])
+    #nn_wrapper.set_parameters(new_params)
+    #best_fit_nn, _ = nn_wrapper.get_observations()
+    best_fit_nn = (surrogate_observed[mask])[best_fit_idx]
 
     ax_pressure.plot(best_fit_observe, color="green", label=f"Flow výstup pro nejlepší shodu s naměřenými daty (l^2 = {flow_error_data[best_fit_idx]})")
-    ax_pressure.plot(best_fit_nn, color="orange", label=f"NN výstup pro nejlepší shodu s naměřenými daty (l^2 = {np.linalg.norm(best_fit_nn - target_observe)})")
+    ax_pressure.plot(best_fit_nn, color="orange", label=f"NN výstup pro nejlepší shodu s naměřenými daty (l^2 = {np.linalg.norm(best_fit_nn - target_observed)})")
 
     ax_pressure.legend()
 
     # 2d hist to plot occurences of NN error at every time point
-    piecewise_clip = 400
-    nn_error_data_piecewise = np.clip(nn_error_data_piecewise, -piecewise_clip, piecewise_clip)
+    piecewise_clip = 1e3
+    mask = (nn_error_data_piecewise < piecewise_clip) & (nn_error_data_piecewise > -piecewise_clip)
+    #nn_error_data_piecewise = np.clip(nn_error_data_piecewise, -piecewise_clip, piecewise_clip)
     hist2d_x = np.tile(time_points, idata["posterior"].sizes["draw"] * idata["posterior"].sizes["chain"])
+    nn_error_data_piecewise = nn_error_data_piecewise[mask]
+    hist2d_x = hist2d_x[mask]
     fig_hist2d, ax_hist2d = plt.subplots(figsize=(16, 9))
     hist2d_handle = ax_hist2d.hist2d(hist2d_x, nn_error_data_piecewise, bins=[time_points, 80], cmap="viridis_r", cmin=1e-10)
     fig_hist2d.colorbar(hist2d_handle[3])
-    ax_hist2d.set_title(f"Histogram 2D - rozložení normy mezi NN a naměřenými daty v jednolivých časových bodech (hodnoty nad {piecewise_clip})")
+    ax_hist2d.set_title(f"Histogram 2D - rozložení normy mezi NN a naměřenými daty v jednolivých časových bodech (hodnoty nad {piecewise_clip} oříznuty)")
     ax_hist2d.set_xlabel("Čas [den]")
-    ax_hist2d.set_ylabel("Norma mezi NN a naměřenými daty (L^2)")
+    ax_hist2d.set_ylabel("nn - flow")
     ax_hist2d.grid(True)
 
 
@@ -421,14 +468,18 @@ def plot_pair_against_nn(idata: az.InferenceData, config_path=None, nn_path=None
     fig_scatter, ax_scatter = plt.subplots(figsize=(16, 9))
     # flow error data is loglike
     # refactor according to norm = sqrt(-2 * loglike * noise_cov)
-    likelihood_clip = 1000
-    likelihood_data = np.sqrt(-2 * likelihood_data * 50)
-    likelihood_data = np.clip(likelihood_data, a_min=0, a_max=likelihood_clip)
-    ax_scatter.scatter(nn_error_data, likelihood_data)
+    likelihood_clip = 1e6
+    #likelihood_data = np.sqrt(-2 * likelihood_data * 50)
+    likelihood_data = np.clip(flow_error_data, a_min=0, a_max=likelihood_clip)
+    ax_scatter.scatter(likelihood_data, nn_error_data, norm=norm)
     ax_scatter.set_title(f"Závislost chyby NN vůči plnému modelu na chybě plného modelu vůči naměřeným datům, hodnoty nad {likelihood_clip} oříznuty")
-    ax_scatter.set_xlabel("Norma mezi NN a naměřenými daty (L^2)")
-    ax_scatter.set_ylabel("Norma mezi plným modelem a naměřenými daty (L^2)")
+    ax_scatter.set_xlabel("Norma mezi plným modelem a naměřenými daty (L^2)")
+    ax_scatter.set_ylabel("Norma mezi NN a naměřenými daty (L^2)")
+    ax_scatter.set_xscale("log")
+    ax_scatter.set_yscale("log")
     ax_scatter.grid(True)
+    ax_scatter.scatter(likelihood_data[best_fit_idx], nn_error_data[best_fit_idx], color="red", label="best-fit")
+    ax_scatter.legend()
 
     return fig_pair, fig_hist, fig_pressure, fig_hist2d, fig_scatter
 
