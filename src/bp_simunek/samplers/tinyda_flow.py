@@ -43,6 +43,8 @@ NCR_DEFAULT = 1
 B_STAR_DEFAULT = 1e-6
 ARCHIVE_LIMIT_DEFAULT = 0
 ADAPTIVE_LIKELIHOOD_DEFAULT = False
+SYNC_RATE_DEFAULT = 1
+SUBSET_SCALE_DEFAULT = 1
 
 logging.basicConfig(
     level=logging.DEBUG,        # Capture all messages at DEBUG level and above
@@ -281,6 +283,21 @@ class TinyDAFlowWrapper():
                 self.archive_limit = ARCHIVE_LIMIT_DEFAULT
                 logging.warning("archive limit not specified, defaulting to %d", ARCHIVE_LIMIT_DEFAULT)
 
+            if self.proposal == tda.DREAM:
+                sync_rate_key = "sync_rate"
+                if sync_rate_key in params:
+                    self.sync_rate = params[sync_rate_key]
+                else:
+                    self.sync_rate = SYNC_RATE_DEFAULT
+                    logging.warning("sync rate not specified, defaulting to %d", SYNC_RATE_DEFAULT)
+
+                subset_scale_key = "subset_scale"
+                if subset_scale_key in params:
+                    self.subset_scale = params[subset_scale_key]
+                else:
+                    self.subset_scale = SUBSET_SCALE_DEFAULT
+                    logging.warning("subset scale not specified, defaulting to %d", SYNC_RATE_DEFAULT)
+
         # adaptive proposal params
         proposal_adaptive_key = "proposal_adaptive"
         if proposal_adaptive_key in params:
@@ -455,7 +472,7 @@ class TinyDAFlowWrapper():
             logging.info(proposal.b_star)
         elif self.proposal == tda.DREAM:
             logging.info("Using DREAM")
-            proposal = tda.DREAM(self.m0, self.delta, nCR=self.ncr, adaptive=self.adaptive, b_star=self.b_star, archive_limit=self.archive_limit)
+            proposal = tda.DREAM(self.m0, self.delta, nCR=self.ncr, adaptive=self.adaptive, b_star=self.b_star, archive_limit=self.archive_limit, sync_rate=self.sync_rate, subset_scale=self.subset_scale)
         elif self.proposal == tda.MALA:
             logging.info("Using MALA")
             proposal = tda.MALA(self.scaling, self.adaptive, self.gamma, self.adaptivity_period)
@@ -664,8 +681,8 @@ class TinyDAFlowWrapper():
         #    num = len(self.config["conductivity_observe_points"])
         #    data = data[:-num]
 
-        #logging.warning("Model output:")
-        #logging.warning(data)
+        logging.warning("Flow Model output:")
+        logging.warning(data)
 
 
         return data
