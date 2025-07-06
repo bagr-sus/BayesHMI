@@ -62,7 +62,7 @@ parameters:
 
 sampler_parameters:
   # how many samples to collect
-  sample_count: 500
+  sample_count: 100
   # how many samples to scrap
   tune_count: 0
   # how many chains to run
@@ -72,13 +72,13 @@ sampler_parameters:
   # standard deviation of noise function
   noise_cov: 50
   # proposal to use
-  proposal: "DREAMZ"  
+  proposal: "DREAM"
   # whether to adapt scaling
   proposal_adaptive: True
   # how often to adapt scaling
   proposal_adaptivity_period: 20
   proposal_gamma: 0.05
-  m0: 500
+  m0: 5000
   delta: 3
   lcr: 8
   b_star: 0.001
