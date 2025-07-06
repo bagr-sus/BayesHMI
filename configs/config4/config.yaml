@@ -84,7 +84,7 @@ sampler_parameters:
   b_star: 0.001
   archive_limit: 0
   adaptive_likelihood: False
-  sync_rate: 250
+  sync_rate: 2500
 
 models:
   - name: nn_surrogate
