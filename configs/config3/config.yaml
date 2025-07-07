@@ -17,12 +17,12 @@ parameters:
  - name: init_stress_y
    type: lognorm
    bounds: [ 16.2134058307626, 0.75]
- - name: perm_k0
-   type: lognorm
-   bounds: [ -48.8651125766410, 3.0]
 # - name: perm_k0
 #   type: lognorm
-#   bounds: [ -52, 0.5]
+#   bounds: [ -48.8651125766410, 3.0]
+ - name: perm_k0
+   type: lognorm
+   bounds: [ -46, 1]
  - name: perm_eps
    type: truncnorm
    bounds : [1.1, 1000, 33, 21]
@@ -72,33 +72,32 @@ sampler_parameters:
   # standard deviation of noise function
   noise_cov: 50
   # proposal to use
-  proposal: "DREAM"
+  proposal: "IS"
   # whether to adapt scaling
   proposal_adaptive: True
   # how often to adapt scaling
   proposal_adaptivity_period: 20
   proposal_gamma: 0.05
-  m0: 5000
+  m0: 50
   delta: 3
   lcr: 8
   b_star: 0.001
   archive_limit: 0
   adaptive_likelihood: False
-  sync_rate: 100
 
 models:
-  - name: nn_surrogate
-    type: nn2
-    file: model_TSX_new.yaml
-    noise_cov: 50
-    subchain_length: 500
+#  - name: nn_surrogate
+#    type: nn2
+#    file: model_TSX_new.yaml
+#    noise_cov: 50
+#    subchain_length: 500
 #  - name: default
 #    type: flow
 #    file: tunnel_mesh_cut_coarse_healed
   - name: default
     type: flow
     file: tunnel_mesh_cut_fine_healed
-    noise_cov: 50
+    noise_cov: 10000
 
 # synthetic observe params
 #synthetic_data:
