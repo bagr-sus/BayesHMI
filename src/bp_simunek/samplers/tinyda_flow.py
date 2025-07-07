@@ -459,6 +459,9 @@ class TinyDAFlowWrapper():
         if len(subchain_lengths) == 1:
             subchain_lengths = subchain_lengths[0]
 
+        if len(subchain_lengths) == 0:
+            subchain_lengths = 1
+
         # setup proposal covariance matrix (for random gaussian walk & adaptive metropolis)
         proposal_cov = self.create_proposal_matrix()
 
